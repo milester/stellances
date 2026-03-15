@@ -1,4 +1,4 @@
-# 🚀 Stellance
+#  Stellance
 
 **Decentralized freelance payment platform powered by the Stellar blockchain**
 
@@ -6,7 +6,7 @@
 [![Stellar](https://img.shields.io/badge/Stellar-XLM-blue)](https://stellar.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## 🎯 Problem Statement
+##  Problem Statement
 
 Freelancers worldwide face a broken payment system. Traditional platforms are:
 - ❌ Expensive (up to 20% in platform fees and payment processor cuts)
@@ -14,7 +14,7 @@ Freelancers worldwide face a broken payment system. Traditional platforms are:
 - ❌ Inaccessible (millions in Africa, Asia, and Latin America can't receive international payments)
 - ❌ Opaque (no transparent, verifiable record of agreements or payment history)
 
-## 💡 Solution
+##  Solution
 
 Stellance leverages the **Stellar blockchain** to create a borderless, low-cost platform where:
 
@@ -23,27 +23,27 @@ Stellance leverages the **Stellar blockchain** to create a borderless, low-cost 
 ✅ **Payments** release automatically upon work approval  
 ✅ **Everyone** benefits from <$0.00001 transaction fees and 3–5 second settlement
 
-## 🚀 Key Features
+##  Key Features
 
 ### For Freelancers
-- 💸 **Instant Payouts**: Receive funds in seconds, not days
-- 🌍 **No Bank Required**: Just a Stellar wallet address to get started
-- 📈 **On-Chain Reputation**: Build verifiable payment history and reviews
-- 📱 **Mobile-Friendly**: Works for anyone with a smartphone
+-  **Instant Payouts**: Receive funds in seconds, not days
+-  **No Bank Required**: Just a Stellar wallet address to get started
+-  **On-Chain Reputation**: Build verifiable payment history and reviews
+-  **Mobile-Friendly**: Works for anyone with a smartphone
 
 ### For Clients
-- 🔐 **Escrow Protection**: Funds locked until work is delivered and approved
-- 🔍 **Transparent Agreements**: Immutable on-chain job contracts and milestones
-- ⚡ **Instant Settlement**: Release payment the moment you approve
-- 💱 **Multi-Currency**: Pay in USDC, XLM, or other Stellar assets
+-  **Escrow Protection**: Funds locked until work is delivered and approved
+-  **Transparent Agreements**: Immutable on-chain job contracts and milestones
+-  **Instant Settlement**: Release payment the moment you approve
+-  **Multi-Currency**: Pay in USDC, XLM, or other Stellar assets
 
 ### For the Platform
-- 🤝 **Smart Escrow**: Stellar claimable balances for conditional payment release
-- ⚖️ **Dispute Resolution**: Platform mediates and releases funds accordingly
-- 🌐 **Low Fees**: Under 2% platform fee vs. 20% on traditional platforms
-- 🔗 **Open & Interoperable**: API-first design for third-party integrations
+-  **Smart Escrow**: Stellar claimable balances for conditional payment release
+-  **Dispute Resolution**: Platform mediates and releases funds accordingly
+-  **Low Fees**: Under 2% platform fee vs. 20% on traditional platforms
+-  **Open & Interoperable**: API-first design for third-party integrations
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -220,29 +220,29 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
 
-## 🌟 Team
+##  Team
 
 - **Your Name** — Project Lead
 - Open for contributors!
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [Stellar Development Foundation](https://stellar.org) — Blockchain infrastructure
 - Freelancer communities worldwide — Domain expertise and feedback
 - Open source community — Tools and libraries
 
-## 📞 Contact
+##  Contact
 
 - **Website**: [Coming Soon]
 - **Email**: contact@stellance.io
 - **Twitter**: [@StellanceHQ](https://twitter.com/stellancehq)
 - **Discord**: [Join our community](https://discord.gg/stellance)
 
-## 🔗 Links
+##  Links
 
 - [Stellar Documentation](https://developers.stellar.org/)
 - [Project Wiki](https://github.com/yourusername/stellance/wiki)

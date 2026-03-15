@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output          = "../src/generated/prisma"
+  moduleFormat  = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CLIENT
+  FREELANCER
+  ADMIN
+}
+
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  DISPUTED
+  CANCELLED
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  PAID
+}
+
+model User {
+  id                    String     @id @default(uuid())
+  email                 String     @unique
+  name                  String
+  role                  UserRole
+  stellarPublicKey      String?    @unique
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  jobs                  Job[]      @relation("JobClient")
+  contractsAsClient     Contract[] @relation("ContractClient")
+  contractsAsFreelancer Contract[] @relation("ContractFreelancer")
+
+  @@index([email])
+  @@index([stellarPublicKey])
+}
+
+model Job {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  budget      Decimal   @db.Decimal(18,7)
+  category    String
+  status      JobStatus
+  clientId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client      User      @relation("JobClient", fields: [clientId], references: [id], onDelete: Restrict)
+  contract    Contract?
+
+  @@index([clientId])
+  @@index([status])
+  @@index([clientId, status])
+}
+
+model Contract {
+  id           String         @id @default(uuid())
+  jobId        String         @unique
+  freelancerId String
+  clientId     String
+  status       ContractStatus
+  escrowTxHash String?        @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  job          Job            @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  freelancer   User           @relation("ContractFreelancer", fields: [freelancerId], references: [id], onDelete: Restrict)
+  client       User           @relation("ContractClient", fields: [clientId], references: [id], onDelete: Restrict)
+  milestones   Milestone[]
+  payments     Payment[]
+
+  @@index([freelancerId])
+  @@index([clientId])
+  @@index([escrowTxHash])
+  @@index([freelancerId, status])
+}
+
+model Milestone {
+  id         String          @id @default(uuid())
+  contractId String
+  title      String
+  amount     Decimal         @db.Decimal(18,7)
+  status     MilestoneStatus
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  contract   Contract        @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  payment    Payment?
+
+  @@index([contractId])
+  @@index([contractId, status])
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  contractId    String
+  milestoneId   String?  @unique
+  amount        Decimal  @db.Decimal(18,7)
+  stellarTxHash String   @unique
+  createdAt     DateTime @default(now())
+
+  contract      Contract   @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  milestone     Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
+
+  @@index([contractId])
+  @@index([stellarTxHash])
+}

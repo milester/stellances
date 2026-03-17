@@ -31,6 +31,22 @@
 $ pnpm install
 ```
 
+## Environment variables
+
+Copy `backend/.env.example` to `backend/.env` and set at least `DATABASE_URL` and `JWT_SECRET`.
+
+Auth uses:
+- Short-lived access JWTs (`JWT_ACCESS_EXPIRES_IN`, default `15m`)
+- Rotating refresh tokens stored in DB (`JWT_REFRESH_DAYS`, default `30d`)
+
+## Auth endpoints
+
+All routes are under the global prefix: `/api/auth/*`.
+- `POST /api/auth/login` sets `access_token` + `refresh_token` cookies and returns an access token.
+- `POST /api/auth/refresh` rotates the refresh token and returns a new access token.
+- `POST /api/auth/logout` revokes the current refresh token and clears cookies.
+- `POST /api/auth/logout-all` increments `User.tokenVersion` and revokes all refresh tokens for the user.
+
 ## Compile and run the project
 
 ```bash

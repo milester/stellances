@@ -45,16 +45,41 @@ model User {
   email                 String     @unique
   name                  String
   role                  UserRole
+  password              String
   stellarPublicKey      String?    @unique
+  tokenVersion          Int        @default(0)
   createdAt             DateTime   @default(now())
   updatedAt             DateTime   @updatedAt
 
   jobs                  Job[]      @relation("JobClient")
   contractsAsClient     Contract[] @relation("ContractClient")
   contractsAsFreelancer Contract[] @relation("ContractFreelancer")
+  refreshTokens         RefreshToken[]
 
   @@index([email])
   @@index([stellarPublicKey])
+}
+
+model RefreshToken {
+  id                 String       @id @default(uuid())
+  token              String       @unique
+  userId             String
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenVersion       Int
+  expiresAt          DateTime
+  revoked            Boolean      @default(false)
+  revokedAt          DateTime?
+  replacedByTokenId  String?
+  replacedByToken    RefreshToken? @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id])
+  replacesTokens     RefreshToken[] @relation("RefreshTokenRotation")
+  userAgent          String?
+  ip                 String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revoked])
 }
 
 model Job {

@@ -5,6 +5,7 @@ import {
   PostJobButton,
   PostJobButtonCompact,
 } from "./components/PostJobButton";
+import { WalletConnect } from "@/components/wallet/WalletConnect";
 
 export const metadata: Metadata = {
   title: {
@@ -136,24 +137,12 @@ function Sidebar() {
         </div>
       </nav>
 
-      {/* Footer: wallet / profile placeholder */}
+      {/* Footer: wallet connect */}
       <div
-        className="px-5 py-4 shrink-0"
+        className="px-4 py-4 shrink-0"
         style={{ borderTop: "1px solid var(--color-slate-border)" }}
       >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #3da9fc, #5ee7ff)" }}
-            aria-hidden
-          >
-            S
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-white truncate">My Account</p>
-            <p className="text-xs text-text-muted truncate">Freighter not connected</p>
-          </div>
-        </div>
+        <WalletConnect variant="full" />
       </div>
     </aside>
   );
@@ -198,6 +187,8 @@ function TopBar() {
         ))}
         {/* CLIENT-only: Post a Job CTA */}
         <PostJobButtonCompact />
+        {/* Wallet connect (compact pill for mobile) */}
+        <WalletConnect variant="compact" />
       </nav>
     </header>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,21 @@ import {
   extractErrorMessage,
   type UserRole,
 } from "@/lib/api/auth";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Validate a ?next redirect target.
+ * Only accepts same-origin relative paths (starts with "/" but not "//").
+ * Rejects anything that looks like an absolute URL to prevent open-redirect.
+ */
+function safeNextUrl(raw: string | null, fallback: string): string {
+  if (!raw) return fallback;
+  if (raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("://")) {
+    return raw;
+  }
+  return fallback;
+}
 
 // ─── Validation schema ────────────────────────────────────────────────────────
 
@@ -145,6 +160,7 @@ function RoleCard({
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -187,7 +203,13 @@ export function RegisterForm() {
       sessionStorage.setItem("access_token", data.access_token);
 
       toast.success("Account created! Let's set up your wallet.");
-      router.push("/wallet/setup");
+
+      // Respect ?next param so the auth guard can send users back where they intended.
+      const destination = safeNextUrl(
+        searchParams.get("next"),
+        "/dashboard/jobs"
+      );
+      router.push(destination);
     } catch (err) {
       // AuthApiError: the backend returns a descriptive message directly (e.g.
       // "Email already exists" for 409, or field-level messages for 400s).

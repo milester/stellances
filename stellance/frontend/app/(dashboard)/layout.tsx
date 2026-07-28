@@ -5,6 +5,7 @@ import {
   PostJobButton,
   PostJobButtonCompact,
 } from "./components/PostJobButton";
+import DashboardAuthGuard from "./components/DashboardAuthGuard";
 import { WalletConnect } from "@/components/wallet/WalletConnect";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 
 const NAV_ITEMS = [
   {
-    href: "/jobs",
+    href: "/dashboard/jobs",
     label: "Browse Jobs",
     icon: (
       <svg
@@ -202,13 +203,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh bg-navy">
-      <Sidebar />
+    <DashboardAuthGuard>
+      <div className="flex min-h-dvh bg-navy">
+        <Sidebar />
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <div className="flex flex-col flex-1 min-w-0">
+          <TopBar />
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
       </div>
-    </div>
+    </DashboardAuthGuard>
   );
 }

@@ -1,13 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { loginUser, AuthApiError, extractErrorMessage } from "@/lib/api/auth";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Validate a ?next redirect target.
+ * Only accepts same-origin relative paths (starts with "/" but not "//").
+ * Rejects anything that looks like an absolute URL to prevent open-redirect.
+ */
+function safeNextUrl(raw: string | null, fallback: string): string {
+  if (!raw) return fallback;
+  // Must start with "/" but not "//" (protocol-relative) and must not contain "://"
+  if (raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("://")) {
+    return raw;
+  }
+  return fallback;
+}
 
 // ─── Validation schema ────────────────────────────────────────────────────────
 
@@ -81,6 +97,7 @@ function EyeIcon({ visible }: { visible: boolean }) {
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -106,7 +123,13 @@ export function LoginForm() {
       toast.success(
         `Welcome back${data.user.email ? `, ${data.user.email}` : ""}!`
       );
-      router.push("/dashboard/jobs");
+
+      // Respect ?next param so users land where they intended after auth guard redirect.
+      const destination = safeNextUrl(
+        searchParams.get("next"),
+        "/dashboard/jobs"
+      );
+      router.push(destination);
     } catch (err) {
       // 401 from LocalAuthGuard = wrong credentials. The backend returns a
       // generic message for 401/403; override with a user-friendly string.

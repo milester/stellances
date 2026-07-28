@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RegisterForm } from "./RegisterForm";
 
@@ -12,7 +13,13 @@ export const metadata: Metadata = {
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+// RegisterForm calls useSearchParams() to read ?next, so it must be wrapped
+// in a Suspense boundary to allow static prerendering of the page shell.
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
 }

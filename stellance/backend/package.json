@@ -79,7 +79,8 @@
     "fast-uri": "3.1.4",
     "find-my-way": "9.7.0",
     "minimatch": "^10.2.6",
-    "brace-expansion": "^5.0.8"
+    "brace-expansion": "^5.0.8",
+    "test-exclude": "^8.0.0"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { LoginForm } from "./LoginForm";
 
@@ -10,7 +11,13 @@ export const metadata: Metadata = {
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+// LoginForm calls useSearchParams() to read ?next, so it must be wrapped in
+// a Suspense boundary to allow static prerendering of the page shell.
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
 }

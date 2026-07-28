@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
 
 // ─── JWT role helper ──────────────────────────────────────────────────────────
@@ -84,15 +85,17 @@ function PlusIcon({ size }: { size: number }) {
 
 /**
  * Renders a "Post Job" CTA only when the current user's JWT identifies them
- * as a CLIENT. Renders nothing for FREELANCER users, unauthenticated visitors,
- * or during SSR (role is read from sessionStorage at render time — safe because
- * this is a Client Component and sessionStorage is only accessed after hydration).
+ * as a CLIENT.
+ *
+ * Uses useState + useEffect to defer the sessionStorage read until after
+ * hydration, avoiding a server/client mismatch and the resulting button flash.
  */
 export function PostJobButton() {
-  // Lazy initializer runs once on the client after hydration.
-  // No useEffect needed — sessionStorage is synchronous and always available
-  // when this Client Component renders.
-  const isClientRole = getRoleFromSession() === "CLIENT";
+  const [isClientRole, setIsClientRole] = useState(false);
+
+  useEffect(() => {
+    startTransition(() => setIsClientRole(getRoleFromSession() === "CLIENT"));
+  }, []);
 
   if (!isClientRole) return null;
 
@@ -103,7 +106,11 @@ export function PostJobButton() {
  * Compact icon-only variant for the mobile top bar.
  */
 export function PostJobButtonCompact() {
-  const isClientRole = getRoleFromSession() === "CLIENT";
+  const [isClientRole, setIsClientRole] = useState(false);
+
+  useEffect(() => {
+    startTransition(() => setIsClientRole(getRoleFromSession() === "CLIENT"));
+  }, []);
 
   if (!isClientRole) return null;
 

@@ -27,8 +27,8 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.6",
-    "@prisma/adapter-pg": "7.8.0",
-    "@prisma/client": "7.8.0",
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client": "7.9.1",
     "@stellar/stellar-sdk": "^13.3.0",
     "argon2": "^0.44.0",
     "class-transformer": "^0.5.1",
@@ -36,7 +36,6 @@
     "cookie-parser": "^1.4.7",
     "helmet": "^8.0.0",
     "install": "^0.13.0",
-    "npm": "^11.11.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -66,7 +65,7 @@
     "globals": "^16.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
-    "prisma": "7.8.0",
+    "prisma": "7.9.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -78,7 +77,9 @@
   },
   "overrides": {
     "fast-uri": "3.1.4",
-    "find-my-way": "9.7.0"
+    "find-my-way": "9.7.0",
+    "minimatch": "^10.2.6",
+    "brace-expansion": "^5.0.8"
   },
   "jest": {
     "moduleFileExtensions": [

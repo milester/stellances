@@ -415,3 +415,59 @@ fn ping_emits_event() {
     let id = env.register_contract(None, StellanceEscrow);
     StellanceEscrowClient::new(&env, &id).ping();
 }
+
+// ---------------------------------------------------------------------------
+// version()
+// ---------------------------------------------------------------------------
+
+#[test]
+fn version_returns_semver_string() {
+    let env = Env::default();
+    let id = env.register_contract(None, StellanceEscrow);
+    let client = StellanceEscrowClient::new(&env, &id);
+    let v = client.version();
+    // Verify it equals the expected semver string.
+    let expected = soroban_sdk::String::from_str(&env, "1.1.0");
+    assert_eq!(v, expected, "version() should return '1.1.0'");
+}
+
+// ---------------------------------------------------------------------------
+// get_admin()
+// ---------------------------------------------------------------------------
+
+#[test]
+fn get_admin_returns_none_before_fund() {
+    let f = Fixture::setup();
+    let unknown = Symbol::new(&f.env, "unfunded_abc12");
+    assert!(
+        f.escrow().get_admin(&unknown).is_none(),
+        "get_admin() should return None when no escrow exists"
+    );
+}
+
+#[test]
+fn get_admin_returns_admin_after_fund() {
+    let f = Fixture::setup();
+    f.fund(500);
+    let admin_returned = f
+        .escrow()
+        .get_admin(&f.contract_id)
+        .expect("get_admin() should return Some after fund()");
+    assert_eq!(
+        admin_returned, f.admin,
+        "get_admin() should return the admin address set at fund time"
+    );
+}
+
+#[test]
+fn get_admin_still_readable_after_release() {
+    let f = Fixture::setup();
+    f.fund(500);
+    f.escrow().release(&f.contract_id, &f.client);
+    // Admin should still be readable from the terminal record.
+    let admin_returned = f
+        .escrow()
+        .get_admin(&f.contract_id)
+        .expect("get_admin() should be readable on a Released escrow");
+    assert_eq!(admin_returned, f.admin);
+}

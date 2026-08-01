@@ -656,6 +656,45 @@ impl StellanceEscrow {
     }
 
     // -----------------------------------------------------------------------
+    // version — upgrade management entrypoint
+    // -----------------------------------------------------------------------
+
+    /// Return the current contract version as a Soroban String.
+    ///
+    /// Callers can use this to confirm which WASM build is deployed after an
+    /// upgrade (via `stellar contract deploy --upgrade`). The format follows
+    /// semver: `"MAJOR.MINOR.PATCH"`. Bump the minor version when new
+    /// entrypoints are added in a backward-compatible way, and the major
+    /// version when storage layout or argument order changes.
+    ///
+    /// Returns a `soroban_sdk::String` (not a Rust `&str`) because all
+    /// Soroban contract return values must be `Val`-convertible.
+    ///
+    /// This function does not modify storage and does not require auth.
+    pub fn version(env: Env) -> soroban_sdk::String {
+        soroban_sdk::String::from_str(&env, "1.1.0")
+    }
+
+    // -----------------------------------------------------------------------
+    // get_admin — read the admin address of a funded escrow
+    // -----------------------------------------------------------------------
+
+    /// Return the admin address recorded for `contract_id`, or `None` if the
+    /// escrow does not exist.
+    ///
+    /// Useful for frontends and monitoring tools that need to verify which
+    /// platform account has arbitration rights over a given escrow without
+    /// fetching the full `EscrowEntry`.
+    ///
+    /// This function does not modify storage and does not require auth.
+    pub fn get_admin(env: Env, contract_id: Symbol) -> Option<Address> {
+        env.storage()
+            .persistent()
+            .get::<DataKey, EscrowEntry>(&DataKey::Escrow(contract_id))
+            .map(|entry| entry.admin)
+    }
+
+    // -----------------------------------------------------------------------
     // ping — CI smoke test
     // -----------------------------------------------------------------------
 

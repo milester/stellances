@@ -1,13 +1,27 @@
 # Stellance Near-Term Roadmap
 
-_Last updated: 2026-07-17_
+_Last updated: 2026-08-01_
 
 ## Focus: Escrow Create → Fund → Milestone Release → Dispute
 
-The Soroban contract is complete and test-covered. The backend EscrowService is
-wired. The gap is the integration layer between them — testnet deployment,
-end-to-end backend ↔ contract calls, and the Freighter signing flow in the
-frontend. That is the entire focus for the next 3–4 weeks.
+The Soroban contract is complete, test-covered (34 tests), and compiles to WASM.
+The backend EscrowService is wired. The gap is the integration layer — testnet
+deployment, end-to-end backend ↔ contract calls, and the Freighter signing flow
+in the frontend.
+
+---
+
+## Completed since last update (2026-07-28 → 2026-08-01)
+
+| Item | Status |
+|------|--------|
+| Contract `version()` entrypoint | ✅ Done |
+| Contract `get_admin()` read-only view | ✅ Done |
+| 4 new contract tests (34 total) | ✅ Done |
+| `GET /jobs` pagination + text search + budget filter | ✅ Done |
+| `GET /users` admin list endpoint | ✅ Done |
+| Startup env-var validation (roadmap #69) | ✅ Done |
+| Job detail "Apply" button wired to wallet + proposal form | ✅ Done |
 
 ---
 
@@ -59,7 +73,7 @@ Client                Backend                  Soroban Contract
 
 ### Week 1 — Testnet deployment + backend integration wire-up
 
-**Goal:** a real escrow contract address on Stellar testnet, backend calls reach it.
+**Goal:** a real escrow contract address on Stellar testnet; backend calls reach it.
 
 - Deploy the Soroban escrow contract to Stellar testnet, record the contract address
 - Set `SOROBAN_CONTRACT_ID` and `STELLAR_NETWORK` in backend `.env.example`
@@ -79,6 +93,7 @@ _Completion signal:_ `POST /contracts/:id/fund` returns a valid XDR string that 
 - Build `FundEscrow` component: calls `/fund` → receives XDR → calls `freighter.signTransaction()` → submits to `/submit-fund`
 - Handle Freighter not installed, user rejection, and submission errors
 - Wire `MilestoneApprove` button to the same XDR-sign-submit pattern (`release_milestone`)
+- Complete the proposal → contract creation flow started by `ApplySection`
 
 _Completion signal:_ a complete fund → approve milestone round-trip from the browser on testnet, with Freighter signing each step.
 
@@ -101,8 +116,8 @@ _Completion signal:_ a contract can enter and exit the dispute state entirely fr
 
 **Goal:** the flow is stable enough for contributors to build on.
 
+- ~~Startup env-var validation (`ConfigModule` schema) — closes issue #69~~ ✅ Done (2026-08-01)
 - Rate limiting on auth endpoints (`@nestjs/throttler`) — closes issue #53
-- Startup env-var validation (`ConfigModule` schema) — closes issue #69
 - Write testnet deployment guide (`docs/testnet-deployment.md`) — closes issue #54
 - Fix `MilestoneStatus.APPROVED` — either implement the transition or remove the dead enum value (#61)
 - Triage remaining open issues (#60, #62, #67, #68, #72) and assign or close
@@ -122,14 +137,14 @@ _Completion signal:_ CI green on the full flow; `docs/testnet-deployment.md` exi
 
 ## Open issues targeted in this window
 
-| Issue | Closes in |
-|-------|-----------|
-| #45 — dispute XDR for Freighter signing | Week 3 |
-| #46 — deploy escrow to testnet | Week 1 |
-| #47 — Soroban event streaming | Post-roadmap |
-| #48 — GET /contracts/:id/on-chain | Week 3 |
-| #49 — link to stellar.expert | Week 3 |
-| #53 — auth rate limiting | Week 4 |
-| #54 — testnet deployment guide | Week 4 |
-| #61 — APPROVED status dead code | Week 4 |
-| #69 — startup env validation | Week 4 |
+| Issue | Description | Closes in |
+|-------|-------------|-----------|
+| #45 | dispute XDR for Freighter signing | Week 3 |
+| #46 | deploy escrow to testnet | Week 1 |
+| #47 | Soroban event streaming | Post-roadmap |
+| #48 | GET /contracts/:id/on-chain | Week 3 |
+| #49 | link to stellar.expert | Week 3 |
+| #53 | auth rate limiting | Week 4 |
+| #54 | testnet deployment guide | Week 4 |
+| #61 | APPROVED status dead code | Week 4 |
+| #69 | startup env validation | ✅ Done |

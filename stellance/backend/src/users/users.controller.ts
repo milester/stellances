@@ -5,15 +5,18 @@ import {
   Body,
   Req,
   UnauthorizedException,
+  ForbiddenException,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import type { User } from '../generated/prisma/client';
+import { UserRole } from '../generated/prisma/client';
 
 interface AuthRequest extends Request {
-  user?: { id?: string };
+  user?: { id?: string; role?: UserRole };
 }
 
 export type UserProfile = Omit<User, 'password'>;
@@ -54,5 +57,33 @@ export class UsersController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...profile } = user;
     return profile;
+  }
+
+  @ApiOperation({ summary: 'List all users — admin only' })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: '1-based page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page (default: 20, max: 100)',
+  })
+  @Get()
+  async findAll(
+    @Req() req: AuthRequest,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    if (req.user?.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Admin access required');
+    }
+    return this.usersService.findAll({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 }

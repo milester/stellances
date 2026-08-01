@@ -291,11 +291,10 @@ export class ContractsService {
 
   async resolveDispute(
     contractId: string,
-    callerId: string,
+    _callerId: string,
     callerRole: UserRole,
     dto: ResolveDisputeDto,
   ) {
-    void callerId;
     if (callerRole !== UserRole.ADMIN)
       throw new ForbiddenException('Only admins can resolve disputes');
 

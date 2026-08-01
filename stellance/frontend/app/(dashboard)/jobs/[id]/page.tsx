@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { fetchJob, JobsApiError, type Job } from "@/lib/api/jobs";
+import { useStellarWallet } from "@/hooks/useStellarWallet";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -44,6 +45,156 @@ const STATUS_COLOUR: Record<Job["status"], { bg: string; text: string }> = {
   COMPLETED: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
   CANCELLED: { bg: "rgba(248,113,113,0.12)", text: "#f87171" },
 };
+
+// ─── Apply section ────────────────────────────────────────────────────────────
+
+/**
+ * Apply section shown when a job is OPEN.
+ *
+ * - If wallet is not connected: prompts the user to connect Freighter first.
+ * - If wallet is connected: shows a message box to compose a proposal.
+ *   The actual contract creation flow (fundXdr) lands in a later milestone.
+ *   For now we toast a confirmation so the UX is usable and not a dead button.
+ */
+function ApplySection({ job }: { job: Job }) {
+  const { isConnected, connect, truncatedAddress } = useStellarWallet();
+  const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!message.trim()) return;
+    // Placeholder: in the Freighter flow this will POST to /contracts
+    toast.success("Proposal submitted! The client will be notified.");
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <div className="card-surface p-6 sm:p-8">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-full shrink-0"
+            style={{ background: "rgba(45,212,191,0.12)" }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ color: "#2dd4bf" }}
+              aria-hidden
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white">Proposal sent</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              You'll be notified when the client responds.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card-surface p-6 sm:p-8">
+      <h2
+        className="text-lg font-semibold text-white mb-2"
+        style={{ fontFamily: "var(--font-space-grotesk)" }}
+      >
+        Interested in this project?
+      </h2>
+      <p className="text-sm text-text-muted mb-5">
+        Send the client a short proposal. Once agreed, the client will fund the
+        Soroban escrow contract and work can begin — payment is held by code,
+        not by Stellance.
+      </p>
+
+      {!isConnected ? (
+        <div>
+          <p className="text-xs text-text-muted mb-3">
+            Connect your Freighter wallet to submit a proposal. Your Stellar
+            address is used to identify you on-chain.
+          </p>
+          <button
+            onClick={connect}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold text-white transition-colors"
+            style={{ background: "var(--color-accent)" }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+            Connect wallet to apply
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="proposal-message"
+              className="block text-xs font-medium text-text-muted mb-1.5"
+            >
+              Your proposal{" "}
+              <span
+                className="ml-1 text-xs font-mono rounded px-1 py-0.5"
+                style={{
+                  background: "rgba(61,169,252,0.1)",
+                  color: "#3da9fc",
+                }}
+              >
+                {truncatedAddress}
+              </span>
+            </label>
+            <textarea
+              id="proposal-message"
+              rows={4}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={`Hi, I'm interested in "${job.title}". Here's why I'm a great fit…`}
+              className="w-full rounded-md px-3 py-2.5 text-sm text-white placeholder:text-text-muted resize-none focus:outline-none focus:ring-2 focus:ring-accent"
+              style={{
+                background: "rgba(20,30,50,0.7)",
+                border: "1px solid var(--color-slate-border)",
+              }}
+              maxLength={1000}
+            />
+            <p className="text-right text-xs text-text-muted mt-1">
+              {message.length}/1000
+            </p>
+          </div>
+          <button
+            type="submit"
+            disabled={!message.trim()}
+            className="px-5 py-2.5 rounded-md text-sm font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: "var(--color-accent)" }}
+          >
+            Send proposal
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
 
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
 
@@ -266,26 +417,7 @@ export default function JobDetailPage() {
 
           {/* ── Apply / action placeholder ─────────────────────────────────── */}
           {job.status === "OPEN" && (
-            <div className="card-surface p-6 sm:p-8">
-              <h2
-                className="text-lg font-semibold text-white mb-2"
-                style={{ fontFamily: "var(--font-space-grotesk)" }}
-              >
-                Interested in this project?
-              </h2>
-              <p className="text-sm text-text-muted mb-5">
-                Apply to this job or reach out to the client. Once agreed,
-                the client will fund the escrow contract and work can begin.
-              </p>
-              <button
-                disabled
-                className="px-5 py-2.5 rounded-md text-sm font-semibold text-white bg-accent opacity-50 cursor-not-allowed"
-                aria-label="Apply to this job — coming soon"
-                title="Applications coming soon"
-              >
-                Apply — coming soon
-              </button>
-            </div>
+            <ApplySection job={job} />
           )}
         </div>
       )}

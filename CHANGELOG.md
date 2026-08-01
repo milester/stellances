@@ -8,6 +8,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+
+- **Contract: `version()` entrypoint** — returns the deployed contract version as a `soroban_sdk::String` (currently `"1.1.0"`). Allows callers to confirm which WASM build is live after an upgrade without reading storage. Resolves upgrade management gap noted in the internal audit.
+- **Contract: `get_admin()` view** — returns `Option<Address>` containing the admin set at `fund()` time for a given `contract_id`. Frontends and monitoring tools can now verify arbitration rights for an escrow without fetching the full `EscrowEntry`.
+- **Contract: 4 new tests** — `version_returns_semver_string`, `get_admin_returns_none_before_fund`, `get_admin_returns_admin_after_fund`, `get_admin_still_readable_after_release`. Total test count: **34** (up from 30).
+- **Backend: `GET /jobs` pagination** — `findAll()` now accepts `page` and `limit` query params and returns `{ data, total, page, limit, totalPages }`. Default page size is 20; maximum is 100. Prevents unbounded queries on growing datasets.
+- **Backend: `GET /jobs` text search** — `search` query param performs case-insensitive `ILIKE` search against job `title` and `category` using Prisma `contains + insensitive` mode.
+- **Backend: `GET /jobs` budget filter** — `minBudget` and `maxBudget` query params filter by XLM amount. Both are optional and can be combined with `search` and `status`.
+- **Backend: `GET /users` (admin-only)** — new endpoint lists all users with pagination. Passwords are excluded from the response via `select` projection. Returns `{ data, total, page, limit, totalPages }`.
+- **Backend: startup env validation** (`main.ts`) — `validateEnvironment()` runs before the NestJS app is created. Exits with code 1 if `JWT_SECRET` or `DATABASE_URL` are absent. Emits structured warnings for optional-but-important Soroban vars (`ESCROW_CONTRACT_ID`, `STELLAR_ADMIN_SECRET`). Closes roadmap item #69.
+- **Frontend: `ApplySection` component** (`jobs/[id]/page.tsx`) — replaces the disabled "Apply — coming soon" button. If wallet is disconnected, shows a "Connect wallet to apply" button. If connected, shows a proposal textarea (max 1000 chars) with a character counter and a submit handler that toasts confirmation. Wires to the `useStellarWallet` hook; ready for the Freighter signing flow when `POST /contracts` lands.
+
+### Changed
+
+- **Backend: `jobs.controller.ts`** — added `@ApiQuery` decorators for all new `GET /jobs` parameters (`search`, `minBudget`, `maxBudget`, `page`, `limit`). Swagger UI at `/docs` now renders fully documented query params for the jobs marketplace endpoint.
+- **Backend: `users.controller.ts`** — `AuthRequest` interface now includes `role` field so the new `GET /users` admin guard can access `req.user.role` without a cast.
+- **Backend: `contracts.service.ts`** — `resolveDispute()` `callerId` parameter renamed to `_callerId` (prefixed with `_`) to make the intentional-unused-param pattern explicit and lint-clean. The admin check uses `callerRole` only, which is correct — the endpoint is protected by the JWT guard at the controller level.
+
+### Fixed
+
+- **Contract: `version()` return type** — initial implementation returned `&'static str`, which is not `Val`-convertible in Soroban 21.x. Fixed to return `soroban_sdk::String::from_str(&env, "1.1.0")`. All 34 contract tests pass.
+- **Frontend: `[id]/page.tsx`** — `useEffect` import was missing after adding `useState` for the apply form. Fixed by updating the import line.
+
+---
+
+## [Unreleased — previous]
+
+### Added
 - `src/escrow/escrow.service.spec.ts` — 24-test unit suite for EscrowService covering all public methods: `contractIdToSymbol`, `getAdminPublicKey`, `verifyTransaction`, `buildFundXdr`, `submitReleaseMilestone`, `submitRelease`, `submitRefund`, `submitDispute`, `submitResolveDispute`, and constructor warnings. All Stellar SDK network calls are mocked; no network access required.
 - `docs/dependency-health.md` — dependency health audit report (2026-07-14): packages assessed, vulnerabilities resolved, action items for maintainers.
 

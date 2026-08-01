@@ -40,17 +40,64 @@ export class JobsController {
     return this.jobsService.create(req.user.id, dto);
   }
 
-  @ApiOperation({ summary: 'List all open jobs (marketplace)' })
+  @ApiOperation({ summary: 'List jobs with optional filters and pagination' })
   @ApiQuery({ name: 'status', enum: JobStatus, required: false })
   @ApiQuery({ name: 'mine', type: Boolean, required: false })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Case-insensitive search in title and category',
+  })
+  @ApiQuery({
+    name: 'minBudget',
+    type: Number,
+    required: false,
+    description: 'Minimum budget (XLM)',
+  })
+  @ApiQuery({
+    name: 'maxBudget',
+    type: Number,
+    required: false,
+    description: 'Maximum budget (XLM)',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: '1-based page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Items per page (default: 20, max: 100)',
+  })
   @Get()
   findAll(
     @Req() req: AuthRequest,
     @Query('status') status?: JobStatus,
     @Query('mine') mine?: string,
+    @Query('search') search?: string,
+    @Query('minBudget') minBudget?: string,
+    @Query('maxBudget') maxBudget?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     const clientId = mine === 'true' ? req.user.id : undefined;
-    return this.jobsService.findAll({ status, clientId });
+    return this.jobsService.findAll(
+      {
+        status,
+        clientId,
+        search: search?.trim() || undefined,
+        minBudget: minBudget ? parseFloat(minBudget) : undefined,
+        maxBudget: maxBudget ? parseFloat(maxBudget) : undefined,
+      },
+      {
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+      },
+    );
   }
 
   @ApiOperation({ summary: 'Get a single job by id' })

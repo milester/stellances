@@ -3,6 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { User } from '../generated/prisma/client';
 import { UserRole } from '../generated/prisma/client';
 
+const MAX_PAGE_SIZE = 100;
+const DEFAULT_PAGE_SIZE = 20;
+
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -17,6 +20,46 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: { id },
     });
+  }
+
+  /**
+   * List all users — admin-only endpoint.
+   * Passwords are excluded from the response.
+   */
+  async findAll(pagination?: { page?: number; limit?: number }) {
+    const page = Math.max(1, pagination?.page ?? 1);
+    const limit = Math.min(
+      MAX_PAGE_SIZE,
+      Math.max(1, pagination?.limit ?? DEFAULT_PAGE_SIZE),
+    );
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          stellarPublicKey: true,
+          createdAt: true,
+          updatedAt: true,
+          // Explicitly omit password
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.user.count(),
+    ]);
+
+    return {
+      data: users,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async create(data: {

@@ -217,20 +217,75 @@ export class EscrowService {
   }
 
   /**
-   * Submit dispute() — freeze the escrow on-chain, called by the party who
-   * initiated the dispute. The admin key is used as the caller here because
-   * the backend submits this transaction on behalf of the contract party.
+   * Build an unsigned XDR envelope for the escrow dispute() Soroban invocation.
    *
-   * Note: the Soroban contract allows client OR freelancer to call dispute().
-   * The admin is authorised for both roles via mock_all_auths in tests.
-   * In production, the backend submits with the admin key and the contract
-   * verifies the caller is a party (client/freelancer) — the admin is NOT
-   * one of those parties, so this call would be rejected.
+   * The Soroban contract requires the caller to be the client OR the freelancer —
+   * neither the admin nor the backend can satisfy that auth check on behalf of a
+   * party. This method returns unsigned XDR so the disputing party can sign it
+   * via Freighter, matching the same non-custodial pattern as buildFundXdr().
    *
-   * TODO: the correct production approach is to return unsigned XDR here so
-   * the party (client or freelancer) signs it themselves via Freighter,
-   * matching the same non-custodial pattern used by buildFundXdr. This is
-   * tracked as a follow-up task.
+   * Flow:
+   *   1. Backend calls buildDisputeXdr({ contractId, callerPublicKey }).
+   *   2. Frontend passes the XDR to Freighter for signing.
+   *   3. Frontend submits the signed tx to Soroban RPC.
+   *   4. Frontend calls POST /contracts/:id/dispute with the tx hash so the
+   *      backend can verify and update the DB status.
+   *
+   * @param params.contractId      - PostgreSQL UUID of the contract.
+   * @param params.callerPublicKey - Stellar G-address of the disputing party
+   *                                 (must be client or freelancer in the escrow).
+   */
+  async buildDisputeXdr(params: {
+    contractId: string;
+    callerPublicKey: string;
+  }): Promise<string> {
+    const rpcServer = new StellarSdk.rpc.Server(this.sorobanRpcUrl);
+    const account = await rpcServer.getAccount(params.callerPublicKey);
+    const contract = new StellarSdk.Contract(this.escrowContractId);
+
+    const tx = new StellarSdk.TransactionBuilder(account, {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: this.networkPassphrase,
+    })
+      .addOperation(
+        contract.call(
+          'dispute',
+          StellarSdk.nativeToScVal(
+            this.contractIdToSymbol(params.contractId),
+            { type: 'symbol' },
+          ),
+          StellarSdk.nativeToScVal(params.callerPublicKey, {
+            type: 'address',
+          }),
+        ),
+      )
+      .setTimeout(60)
+      .build();
+
+    const simResult = await rpcServer.simulateTransaction(tx);
+    if (StellarSdk.rpc.Api.isSimulationError(simResult)) {
+      throw new ServiceUnavailableException(
+        `Soroban simulation failed for dispute: ${simResult.error}`,
+      );
+    }
+
+    const prepared = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
+    return prepared.toEnvelope().toXDR('base64');
+  }
+
+  /**
+   * Submit dispute() — freeze the escrow on-chain using the admin keypair.
+   *
+   * This is an admin-signed fallback for cases where the disputing party
+   * cannot sign with Freighter (e.g. dispute raised via a server-side
+   * admin action or during testing). In production, prefer buildDisputeXdr()
+   * so the disputing party signs themselves and the platform remains
+   * non-custodial.
+   *
+   * The Soroban contract's dispute() function requires the caller to be the
+   * client or freelancer; calling with the admin key will be rejected by the
+   * contract unless the contract is amended to allow admin-initiated disputes.
+   * Use this only in admin flows where on-chain authorisation is not required.
    */
   async submitDispute(contractId: string): Promise<string> {
     return this._submitAdminInvocation('dispute', [

@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { EscrowModule } from './escrow/escrow.module';
+import { PaymentsModule } from './payments/payments.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     JobsModule,
     ContractsModule,
     EscrowModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [

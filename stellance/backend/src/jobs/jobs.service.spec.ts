@@ -54,6 +54,119 @@ describe('JobsService', () => {
     return { prisma, service };
   }
 
+  describe('findAll', () => {
+    it('returns paginated results with defaults when no filters supplied', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([baseJob]);
+      prisma.job.count = jest.fn().mockResolvedValue(1);
+
+      const result = await service.findAll();
+      expect(result.data).toHaveLength(1);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
+      expect(result.total).toBe(1);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('applies status filter', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([]);
+      prisma.job.count = jest.fn().mockResolvedValue(0);
+
+      await service.findAll({ status: JobStatus.OPEN });
+      expect(prisma.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ status: JobStatus.OPEN }),
+        }),
+      );
+    });
+
+    it('applies clientId filter', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([baseJob]);
+      prisma.job.count = jest.fn().mockResolvedValue(1);
+
+      await service.findAll({ clientId: CLIENT_ID });
+      expect(prisma.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ clientId: CLIENT_ID }),
+        }),
+      );
+    });
+
+    it('applies search filter', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([baseJob]);
+      prisma.job.count = jest.fn().mockResolvedValue(1);
+
+      await service.findAll({ search: 'soroban' });
+      expect(prisma.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ OR: expect.any(Array) }),
+        }),
+      );
+    });
+
+    it('applies minBudget filter', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([baseJob]);
+      prisma.job.count = jest.fn().mockResolvedValue(1);
+
+      await service.findAll({ minBudget: 500 });
+      expect(prisma.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ budget: expect.objectContaining({ gte: 500 }) }),
+        }),
+      );
+    });
+
+    it('applies maxBudget filter', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([baseJob]);
+      prisma.job.count = jest.fn().mockResolvedValue(1);
+
+      await service.findAll({ maxBudget: 2000 });
+      expect(prisma.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ budget: expect.objectContaining({ lte: 2000 }) }),
+        }),
+      );
+    });
+
+    it('applies both minBudget and maxBudget together', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([baseJob]);
+      prisma.job.count = jest.fn().mockResolvedValue(1);
+
+      await service.findAll({ minBudget: 100, maxBudget: 5000 });
+      expect(prisma.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            budget: expect.objectContaining({ gte: 100, lte: 5000 }),
+          }),
+        }),
+      );
+    });
+
+    it('caps page size at MAX_PAGE_SIZE (100)', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([]);
+      prisma.job.count = jest.fn().mockResolvedValue(0);
+
+      const result = await service.findAll(undefined, { page: 1, limit: 9999 });
+      expect(result.limit).toBe(100);
+    });
+
+    it('defaults to page 1 when page < 1', async () => {
+      const { prisma, service } = setup();
+      prisma.job.findMany.mockResolvedValue([]);
+      prisma.job.count = jest.fn().mockResolvedValue(0);
+
+      const result = await service.findAll(undefined, { page: 0 });
+      expect(result.page).toBe(1);
+    });
+  });
+
   describe('create', () => {
     it('creates a job with OPEN status', async () => {
       const { prisma, service } = setup();

@@ -96,7 +96,7 @@ function ApplySection({ job }: { job: Job }) {
           <div>
             <p className="text-sm font-semibold text-white">Proposal sent</p>
             <p className="text-xs text-text-muted mt-0.5">
-              You'll be notified when the client responds.
+              You&apos;ll be notified when the client responds.
             </p>
           </div>
         </div>

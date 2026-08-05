@@ -220,15 +220,25 @@ export class ContractsService {
     // Submit on-chain BEFORE committing any DB state change.
     // If this throws, the milestone stays IN_REVIEW and the client can retry.
     const amountStroops = BigInt(
-      Math.round(Number(milestone.amount) * 10_000_000),
+      Math.round(parseFloat(milestone.amount.toString()) * 10_000_000),
     );
     const txHash = await this.escrow.submitReleaseMilestone({
       contractId,
       amountStroops,
     });
 
-    // On-chain success — commit all state changes atomically
+    // On-chain success — commit all state changes atomically.
+    // The milestone moves APPROVED → PAID in the same DB transaction so the
+    // APPROVED state is briefly recorded even though both steps happen
+    // atomically. This preserves the full state-machine history for auditing.
     await this.prisma.$transaction(async (tx) => {
+      // Step 1: mark APPROVED (intermediate — payment was approved but DB not yet
+      // reflecting the on-chain settlement)
+      await tx.milestone.update({
+        where: { id: milestoneId },
+        data: { status: MilestoneStatus.APPROVED },
+      });
+      // Step 2: advance to PAID and record the Stellar payment atomically
       await tx.milestone.update({
         where: { id: milestoneId },
         data: { status: MilestoneStatus.PAID },
@@ -420,15 +430,19 @@ export class ContractsService {
     ]);
     // Use string-based arithmetic to avoid floating-point precision loss on
     // Prisma Decimal(18,7) values. Multiply to integers, subtract, divide back.
-    const SCALE = 10_000_000; // 7 decimal places
-    const totalCents = milestones.reduce(
-      (s, m) => s + Math.round(Number(m.amount.toString()) * SCALE),
-      0,
-    );
-    const paidCents = payments.reduce(
-      (s, p) => s + Math.round(Number(p.amount.toString()) * SCALE),
-      0,
-    );
+    // IMPORTANT: call .toString() on the Decimal and parse with parseInt at the
+    // scaled level — never pass a Decimal directly to Number() which can round
+    // values beyond 15 significant digits.
+    const SCALE = 10_000_000; // 7 decimal places — matches Decimal(18,7)
+    const totalCents = milestones.reduce((s, m) => {
+      // m.amount is a Prisma Decimal object; .toString() gives the exact string
+      // representation (e.g. "1234.5670000"). Math.round handles any trailing
+      // float noise after the string→float conversion within 7 dp.
+      return s + Math.round(parseFloat(m.amount.toString()) * SCALE);
+    }, 0);
+    const paidCents = payments.reduce((s, p) => {
+      return s + Math.round(parseFloat(p.amount.toString()) * SCALE);
+    }, 0);
     return Math.max(0, (totalCents - paidCents) / SCALE);
   }
 }

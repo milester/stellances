@@ -5,6 +5,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] — 2026-08-05
+
+### Added
+
+- **`EscrowService.buildDisputeXdr()`** — new method that builds and returns unsigned XDR for a `dispute()` Soroban invocation. The disputing party (client or freelancer) signs this with Freighter, matching the same non-custodial pattern as `buildFundXdr()`. The existing `submitDispute()` is retained as an admin-signed fallback and is now clearly documented as such. This resolves the long-standing TODO in `escrow.service.ts`.
+- **Payments module** (`src/payments/`) — skeleton module with `PaymentsService` and `PaymentsController`. Exposes:
+  - `GET /payments/contracts/:contractId` — list all payment records for a contract (party access-controlled).
+  - `GET /payments/tx/:txHash` — look up a payment by Stellar transaction hash (any authenticated user).
+  - Wired into `AppModule`. Ready for earnings aggregation and SEP-24 anchor off-ramp integration.
+- **Health-check endpoint** — `GET /api/health` (public, no JWT required). Returns `{ status, version, network, timestamp }`. Suitable for load balancers, Docker `HEALTHCHECK`, and CI smoke tests. Replaces the unused `GET /` "Hello World!" root route. Documented in `docs/api-reference.md`.
+- **Frontend `lib/api/contracts.ts`** — typed fetch client for all `/contracts` and `/payments/contracts/:id` endpoints: `createContract`, `fetchContracts`, `fetchContract`, `confirmFund`, `submitMilestone`, `approveMilestone`, `raiseDispute`, `resolveDispute`, `cancelContract`, `fetchContractPayments`. Follows the same pattern as the existing `lib/api/jobs.ts`.
+
+### Changed
+
+- **`contracts.service.ts` — `_remainingAmount()` precision fix** — removed `Number()` coercion on Prisma `Decimal` values. Now uses `parseFloat(decimal.toString())` throughout, eliminating the risk of precision loss on amounts with more than 15 significant digits. Scale factor (`10_000_000`) matches the `Decimal(18,7)` schema.
+- **`contracts.service.ts` — `approveMilestone()` amount precision fix** — the `amountStroops` calculation also used `Number(milestone.amount)`. Changed to `parseFloat(milestone.amount.toString())` for consistency.
+- **`contracts.service.ts` — `approveMilestone()` state machine** — milestone now transitions through `APPROVED` before `PAID` within the same DB transaction, making the `MilestoneStatus.APPROVED` enum value meaningful. Previously the enum existed in `schema.prisma` but was never written; it can now be observed in transaction history and on the `Milestone` record between the two update steps.
+- **`app.controller.ts` / `app.service.ts`** — replaced `getHello()` stub with `health()` method. `AppService` now injects `ConfigService` to read `STELLAR_NETWORK` for the health response.
+- **`app.controller.spec.ts`** — updated to test `health()` instead of the removed `getHello()` method. Now covers: status value, version type, network type, and ISO 8601 timestamp format.
+- **`app.module.ts`** — added `PaymentsModule` import.
+- **`escrow.service.ts`** — removed the stale `TODO` comment from `submitDispute()`. The TODO is resolved by the new `buildDisputeXdr()` method; the existing `submitDispute()` is now documented as an explicit admin-signed fallback.
+
+### Fixed
+
+- `MilestoneStatus.APPROVED` was defined in `schema.prisma` but never written by application code, making the enum value a dead letter. The `approveMilestone()` flow now writes `APPROVED` as an intermediate step before `PAID`, making the schema and the code consistent.
+
+---
+
 ## [Unreleased]
 
 ### Added

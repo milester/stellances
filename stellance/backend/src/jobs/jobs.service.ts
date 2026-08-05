@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { JobStatus, UserRole } from '../generated/prisma/client';
+import { JobStatus, UserRole, Prisma } from '../generated/prisma/client';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 
@@ -69,8 +69,10 @@ export class JobsService {
     );
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    const where: Parameters<typeof this.prisma.job.findMany>[0]['where'] = {
+    // Build where clause — Prisma.JobWhereInput gives the correct type and
+    // avoids the @typescript-eslint/no-unsafe-assignment that fires when using
+    // Parameters<typeof prisma.job.findMany>[0]['where'].
+    const where: Prisma.JobWhereInput = {
       ...(filters?.status !== undefined && { status: filters.status }),
       ...(filters?.clientId !== undefined && { clientId: filters.clientId }),
       ...(filters?.search

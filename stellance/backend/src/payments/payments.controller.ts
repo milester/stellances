@@ -52,7 +52,8 @@ export class PaymentsController {
       where: { id: contractId },
       select: { clientId: true, freelancerId: true },
     });
-    if (!contract) throw new NotFoundException(`Contract ${contractId} not found`);
+    if (!contract)
+      throw new NotFoundException(`Contract ${contractId} not found`);
 
     const { id: callerId, role } = req.user;
     if (
@@ -77,7 +78,8 @@ export class PaymentsController {
   @Get('tx/:txHash')
   async findByTxHash(@Param('txHash') txHash: string) {
     const payment = await this.paymentsService.findByTxHash(txHash);
-    if (!payment) throw new NotFoundException(`No payment found for tx ${txHash}`);
+    if (!payment)
+      throw new NotFoundException(`No payment found for tx ${txHash}`);
     return payment;
   }
 }

@@ -250,10 +250,9 @@ export class EscrowService {
       .addOperation(
         contract.call(
           'dispute',
-          StellarSdk.nativeToScVal(
-            this.contractIdToSymbol(params.contractId),
-            { type: 'symbol' },
-          ),
+          StellarSdk.nativeToScVal(this.contractIdToSymbol(params.contractId), {
+            type: 'symbol',
+          }),
           StellarSdk.nativeToScVal(params.callerPublicKey, {
             type: 'address',
           }),

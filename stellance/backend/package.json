@@ -76,6 +76,7 @@
     "typescript-eslint": "^8.20.0"
   },
   "overrides": {
+    "js-yaml": "4.3.1",
     "fast-uri": "4.1.2",
     "find-my-way": "9.7.0",
     "minimatch": "^10.2.6",

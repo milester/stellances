@@ -10,9 +10,13 @@ export class AppService {
    * Consumers (load balancers, CI, Uptime Robot) should check for HTTP 200
    * and optionally assert `status === "ok"`.
    */
-  health(): { status: string; version: string; network: string; timestamp: string } {
-    const network =
-      this.config.get<string>('STELLAR_NETWORK') ?? 'testnet';
+  health(): {
+    status: string;
+    version: string;
+    network: string;
+    timestamp: string;
+  } {
+    const network = this.config.get<string>('STELLAR_NETWORK') ?? 'testnet';
     return {
       status: 'ok',
       version: '0.4.0',

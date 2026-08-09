@@ -21,7 +21,12 @@ export class AppController {
     summary: 'Health check — liveness probe (no auth required)',
   })
   @Get('health')
-  health(): { status: string; version: string; network: string; timestamp: string } {
+  health(): {
+    status: string;
+    version: string;
+    network: string;
+    timestamp: string;
+  } {
     return this.appService.health();
   }
 }

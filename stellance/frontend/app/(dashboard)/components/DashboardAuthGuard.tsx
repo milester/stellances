@@ -99,7 +99,7 @@ export default function DashboardAuthGuard({
     } else {
       startTransition(() => setAuthState("redirecting"));
       // Encode the current path so the login form can redirect back after sign-in
-      const next = encodeURIComponent(pathname ?? "/dashboard/jobs");
+      const next = encodeURIComponent(pathname ?? "/jobs");
       router.replace(`/login?next=${next}`);
     }
     // Run once on mount only

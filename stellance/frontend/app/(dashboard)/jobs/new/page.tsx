@@ -103,7 +103,7 @@ export default function NewJobPage() {
     if (access === "unauthenticated") {
       router.replace("/login");
     } else if (access === "wrong-role") {
-      router.replace("/dashboard/jobs");
+      router.replace("/jobs");
     }
   }, [access, router]);
 

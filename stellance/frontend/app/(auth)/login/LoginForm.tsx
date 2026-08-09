@@ -127,7 +127,7 @@ export function LoginForm() {
       // Respect ?next param so users land where they intended after auth guard redirect.
       const destination = safeNextUrl(
         searchParams.get("next"),
-        "/dashboard/jobs"
+        "/jobs"
       );
       router.push(destination);
     } catch (err) {

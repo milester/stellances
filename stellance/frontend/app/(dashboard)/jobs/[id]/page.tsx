@@ -238,7 +238,7 @@ export default function JobDetailPage() {
   useEffect(() => {
     if (error instanceof JobsApiError && error.status === 404) {
       toast.error("Job not found.");
-      router.replace("/dashboard/jobs");
+      router.replace("/jobs");
     }
   }, [error, router]);
 
@@ -246,7 +246,7 @@ export default function JobDetailPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Back link */}
       <Link
-        href="/dashboard/jobs"
+        href="/jobs"
         className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-white transition-colors mb-6"
       >
         <svg

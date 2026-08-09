@@ -207,7 +207,7 @@ export function RegisterForm() {
       // Respect ?next param so the auth guard can send users back where they intended.
       const destination = safeNextUrl(
         searchParams.get("next"),
-        "/dashboard/jobs"
+        "/jobs"
       );
       router.push(destination);
     } catch (err) {

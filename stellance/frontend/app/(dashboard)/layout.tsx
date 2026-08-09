@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  PostJobButton,
-  PostJobButtonCompact,
-} from "./components/PostJobButton";
+import { PostJobButton } from "./components/PostJobButton";
 import DashboardAuthGuard from "./components/DashboardAuthGuard";
+import MobileNav from "./components/MobileNav";
 import { WalletConnect } from "@/components/wallet/WalletConnect";
 
 export const metadata: Metadata = {
@@ -19,7 +17,7 @@ export const metadata: Metadata = {
 
 const NAV_ITEMS = [
   {
-    href: "/dashboard/jobs",
+    href: "/jobs",
     label: "Browse Jobs",
     icon: (
       <svg
@@ -40,7 +38,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/dashboard/contracts",
+    href: "/contracts",
     label: "My Contracts",
     icon: (
       <svg
@@ -64,7 +62,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/dashboard/payments",
+    href: "/payments",
     label: "Payments",
     icon: (
       <svg
@@ -149,52 +147,6 @@ function Sidebar() {
   );
 }
 
-// ─── Mobile top bar ───────────────────────────────────────────────────────────
-
-function TopBar() {
-  return (
-    <header
-      className="md:hidden flex items-center justify-between px-4 h-14 shrink-0"
-      style={{
-        background: "var(--color-slate-panel)",
-        borderBottom: "1px solid var(--color-slate-border)",
-        position: "sticky",
-        top: 0,
-        zIndex: 40,
-      }}
-    >
-      <Link href="/" className="flex items-center gap-2">
-        <Image src="/logo.png" alt="Stellance" width={24} height={24} style={{ borderRadius: "5px" }} />
-        <span
-          className="font-semibold text-white text-sm"
-          style={{ fontFamily: "var(--font-space-grotesk)" }}
-        >
-          Stellance
-        </span>
-      </Link>
-
-      {/* Mobile nav — simple horizontal scroll row */}
-      <nav className="flex items-center gap-1" aria-label="Mobile navigation">
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-text-muted hover:text-white hover:bg-white/5 transition-colors"
-            aria-label={item.label}
-          >
-            {item.icon}
-            <span className="hidden sm:inline">{item.label}</span>
-          </Link>
-        ))}
-        {/* CLIENT-only: Post a Job CTA */}
-        <PostJobButtonCompact />
-        {/* Wallet connect (compact pill for mobile) */}
-        <WalletConnect variant="compact" />
-      </nav>
-    </header>
-  );
-}
-
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 export default function DashboardLayout({
@@ -208,7 +160,7 @@ export default function DashboardLayout({
         <Sidebar />
 
         <div className="flex flex-col flex-1 min-w-0">
-          <TopBar />
+          <MobileNav />
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>

@@ -64,7 +64,9 @@ export class ContractsService {
           jobId: dto.jobId,
           clientId,
           freelancerId: dto.freelancerId,
-          status: ContractStatus.ACTIVE,
+          // Starts as PENDING until the client funds the escrow on-chain.
+          // ContractStatus transitions: PENDING → ACTIVE (on confirmFund)
+          status: ContractStatus.PENDING,
         },
       });
       await tx.milestone.createMany({
@@ -115,7 +117,8 @@ export class ContractsService {
    * POST /contracts/:id/confirm-fund
    *
    * Frontend calls this after submitting the signed fund() tx to Horizon.
-   * Backend verifies the tx hash exists on Horizon, then records it.
+   * Backend verifies the tx hash exists on Horizon, records it, and
+   * transitions the contract from PENDING → ACTIVE.
    */
   async confirmFund(id: string, callerId: string, txHash: string) {
     const contract = await this._getContractOrThrow(id);
@@ -123,12 +126,24 @@ export class ContractsService {
       throw new ForbiddenException('Only the client can confirm funding');
     if (contract.escrowTxHash)
       throw new ConflictException('Escrow already confirmed');
+    if (
+      contract.status !== ContractStatus.PENDING &&
+      contract.status !== ContractStatus.ACTIVE
+    ) {
+      throw new BadRequestException(
+        `Cannot confirm funding for a ${contract.status} contract`,
+      );
+    }
 
     await this.escrow.verifyTransaction(txHash);
 
     return this.prisma.contract.update({
       where: { id },
-      data: { escrowTxHash: txHash },
+      data: {
+        escrowTxHash: txHash,
+        // PENDING → ACTIVE once escrow is funded and tx is verified on-chain
+        status: ContractStatus.ACTIVE,
+      },
       include: { milestones: true },
     });
   }
@@ -356,7 +371,13 @@ export class ContractsService {
     ) {
       throw new BadRequestException(`Contract is already ${contract.status}`);
     }
-    if (contract.escrowTxHash && callerRole !== UserRole.ADMIN) {
+    // A PENDING (unfunded) contract can always be cancelled by the client — no
+    // escrow exists yet so no on-chain refund is needed.
+    if (
+      contract.escrowTxHash &&
+      contract.status !== ContractStatus.PENDING &&
+      callerRole !== UserRole.ADMIN
+    ) {
       throw new ForbiddenException(
         'Escrow is funded — only an admin can cancel after funding',
       );

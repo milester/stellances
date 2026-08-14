@@ -87,7 +87,6 @@ function getAuthHeaders(): HeadersInit {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by real fetch calls once backend ships
 async function apiFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     method: "GET",
@@ -113,170 +112,27 @@ async function apiFetch<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-// TODO: Remove once the backend /payments endpoints are live.
-
-const MOCK_BALANCES: WalletBalance[] = [
-  { asset: "XLM", balance: "4820.7500000", network: "testnet" },
-  { asset: "USDC", balance: "1250.00", network: "testnet" },
-];
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: "txn_01",
-    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    type: "MILESTONE_RELEASED",
-    status: "CONFIRMED",
-    asset: "USDC",
-    amount: "+500.00",
-    description: "Milestone 2 — Smart contract integration",
-    stellarTxHash:
-      "3b6c1a2d9f4e5b7a8c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
-    counterparty: "GBJCHUKZMTFSLOMNC7P4TS4VJJBTCYL3XKSOLXAUJSD56C4LHND5TWUC",
-    contractId: "ctr_xyz",
-  },
-  {
-    id: "txn_02",
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    type: "ESCROW_FUNDED",
-    status: "CONFIRMED",
-    asset: "USDC",
-    amount: "-1000.00",
-    description: "Escrow funded — DeFi Dashboard Project",
-    stellarTxHash:
-      "7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f",
-    counterparty: "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGZXHWZOMM3E63RZTL2ZVA",
-    contractId: "ctr_abc",
-  },
-  {
-    id: "txn_03",
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "WITHDRAWAL",
-    status: "CONFIRMED",
-    asset: "XLM",
-    amount: "-200.0000000",
-    description: "Withdrawal to external wallet",
-    stellarTxHash:
-      "9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d",
-    counterparty: "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    contractId: null,
-  },
-  {
-    id: "txn_04",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "MILESTONE_RELEASED",
-    status: "CONFIRMED",
-    asset: "USDC",
-    amount: "+750.00",
-    description: "Milestone 1 — UI/UX Design Deliverables",
-    stellarTxHash:
-      "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
-    counterparty: "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGZXHWZOMM3E63RZTL2ZVA",
-    contractId: "ctr_def",
-  },
-  {
-    id: "txn_05",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "ESCROW_FUNDED",
-    status: "CONFIRMED",
-    asset: "USDC",
-    amount: "-2000.00",
-    description: "Escrow funded — Mobile App Development",
-    stellarTxHash:
-      "5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
-    counterparty: "GBJCHUKZMTFSLOMNC7P4TS4VJJBTCYL3XKSOLXAUJSD56C4LHND5TWUC",
-    contractId: "ctr_ghi",
-  },
-  {
-    id: "txn_06",
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "REFUND",
-    status: "CONFIRMED",
-    asset: "USDC",
-    amount: "+300.00",
-    description: "Refund — Cancelled contract",
-    stellarTxHash:
-      "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c",
-    counterparty: "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    contractId: "ctr_jkl",
-  },
-  {
-    id: "txn_07",
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "DISPUTE_RESOLVED",
-    status: "CONFIRMED",
-    asset: "USDC",
-    amount: "+600.00",
-    description: "Dispute resolved — 60% awarded to freelancer",
-    stellarTxHash:
-      "4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
-    counterparty: "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGZXHWZOMM3E63RZTL2ZVA",
-    contractId: "ctr_mno",
-  },
-  {
-    id: "txn_08",
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "FULL_RELEASE",
-    status: "CONFIRMED",
-    asset: "XLM",
-    amount: "+1500.0000000",
-    description: "Full release — Backend API Project",
-    stellarTxHash:
-      "8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
-    counterparty: "GBJCHUKZMTFSLOMNC7P4TS4VJJBTCYL3XKSOLXAUJSD56C4LHND5TWUC",
-    contractId: "ctr_pqr",
-  },
-  {
-    id: "txn_09",
-    createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "WITHDRAWAL",
-    status: "PENDING",
-    asset: "XLM",
-    amount: "-500.0000000",
-    description: "Withdrawal to bank via anchor",
-    stellarTxHash: null,
-    counterparty: null,
-    contractId: null,
-  },
-  {
-    id: "txn_10",
-    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    type: "ESCROW_FUNDED",
-    status: "FAILED",
-    asset: "USDC",
-    amount: "-800.00",
-    description: "Escrow funding failed — insufficient balance",
-    stellarTxHash: null,
-    counterparty: "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    contractId: null,
-  },
-];
-
 // ─── Payments API ─────────────────────────────────────────────────────────────
 
 /**
  * Fetch wallet balances for the current user.
- * Returns XLM and USDC balances from the connected Stellar account.
+ * Returns XLM and USDC balances fetched from Horizon via the backend.
  */
 export async function fetchWalletBalances(): Promise<WalletBalance[]> {
-  // TODO: Replace with: return apiFetch<WalletBalance[]>("/payments/balances");
-  await new Promise((r) => setTimeout(r, 600)); // simulate network
-  return MOCK_BALANCES;
+  return apiFetch<WalletBalance[]>("/payments/balances");
 }
 
 /**
  * Fetch the full transaction history for the current user.
- * Includes escrow events, releases, refunds, and withdrawals.
+ * Derived from Payment records in the DB, enriched with contract/job context.
  */
 export async function fetchTransactions(): Promise<Transaction[]> {
-  // TODO: Replace with: return apiFetch<Transaction[]>("/payments/transactions");
-  await new Promise((r) => setTimeout(r, 800)); // simulate network
-  return MOCK_TRANSACTIONS;
+  return apiFetch<Transaction[]>("/payments/transactions");
 }
 
 /**
  * Initiate a withdrawal to an external Stellar address.
- * Returns the new pending transaction record.
+ * Returns the new confirmed transaction record.
  */
 export async function initiateWithdrawal(payload: {
   asset: AssetCode;
@@ -335,7 +191,6 @@ export function formatBalance(balance: string, asset: AssetCode): string {
   if (isNaN(n)) return balance;
 
   if (asset === "XLM") {
-    // XLM: show up to 4 decimal places, strip trailing zeros
     return n.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 4,

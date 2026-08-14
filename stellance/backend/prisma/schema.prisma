@@ -27,6 +27,7 @@ enum JobStatus {
 }
 
 enum ContractStatus {
+  PENDING
   ACTIVE
   COMPLETED
   DISPUTED

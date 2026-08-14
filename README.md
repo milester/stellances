@@ -5,7 +5,7 @@
 
   **A Stellar-powered freelance payment marketplace for instant escrow and on-chain payouts.**
 
-  [![CI](https://github.com/alone-in/stellances/actions/workflows/ci.yml/badge.svg)](https://github.com/alone-in/stellances/actions/workflows/ci.yml)
+  [![CI](https://github.com/stallance/stellances/actions/workflows/ci.yml/badge.svg)](https://github.com/stallance/stellances/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
   [![Stellar](https://img.shields.io/badge/Stellar-XLM-blue.svg)](https://stellar.org)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -211,7 +211,7 @@ stellances/
 ### Clone
 
 ```bash
-git clone https://github.com/alone-in/stellances.git
+git clone https://github.com/stallance/stellances.git
 cd stellances
 ```
 

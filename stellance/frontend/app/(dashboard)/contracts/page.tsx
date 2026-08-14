@@ -9,6 +9,7 @@ import { fetchContracts, type Contract, type ContractStatus } from "@/lib/api/co
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
 const STATUS_LABEL: Record<ContractStatus, string> = {
+  PENDING: "Awaiting Funding",
   ACTIVE: "Active",
   COMPLETED: "Completed",
   DISPUTED: "Disputed",
@@ -16,6 +17,7 @@ const STATUS_LABEL: Record<ContractStatus, string> = {
 };
 
 const STATUS_COLOUR: Record<ContractStatus, { bg: string; text: string }> = {
+  PENDING: { bg: "rgba(251,191,36,0.12)", text: "#FBBF24" },
   ACTIVE: { bg: "rgba(61,169,252,0.12)", text: "#3DA9FC" },
   COMPLETED: { bg: "rgba(45,212,191,0.12)", text: "#2DD4BF" },
   DISPUTED: { bg: "rgba(248,113,113,0.12)", text: "#F87171" },

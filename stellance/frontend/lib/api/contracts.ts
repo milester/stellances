@@ -13,6 +13,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 // ─── Enums (mirrored from Prisma schema) ─────────────────────────────────────
 
 export type ContractStatus =
+  | "PENDING"
   | "ACTIVE"
   | "COMPLETED"
   | "DISPUTED"

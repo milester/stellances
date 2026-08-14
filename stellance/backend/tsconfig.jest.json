@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "resolvePackageJsonExports": true,
+    "isolatedModules": true
+  },
+  "exclude": ["node_modules", "dist"]
+}

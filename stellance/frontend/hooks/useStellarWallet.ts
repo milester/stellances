@@ -2,13 +2,10 @@
  * useStellarWallet
  *
  * React hook that wires the Freighter browser extension to the Zustand wallet
- * store.  All side-effectful operations (connecting, disconnecting, balance
- * fetches) live here; the store is kept as pure state.
+ * store using the official @stellar/freighter-api package.
  *
- * Freighter does not ship its own @types package, so the browser API is
- * typed via the FreighterApi interface below using the Freighter JS API docs.
- *
- * Horizon balance fetch uses @stellar/stellar-sdk already in the project.
+ * Using the package instead of window.freighter directly ensures compatibility
+ * with Freighter v5+ which no longer injects window.freighter in all browsers.
  */
 
 "use client";
@@ -16,29 +13,15 @@
 import { useCallback, useEffect } from "react";
 import { Horizon } from "@stellar/stellar-sdk";
 import { useWalletStore } from "@/lib/stores/walletStore";
-
-// ─── Freighter browser API types ──────────────────────────────────────────────
-
-interface FreighterApi {
-  /** Returns the public key of the connected account. */
-  getPublicKey(): Promise<string>;
-  /** Returns true when the user has granted the site permission. */
-  isConnected(): Promise<boolean | { isConnected: boolean }>;
-  /** Prompts the user to grant the site permission to read their public key. */
-  requestAccess(): Promise<string>;
-  /** Returns the network the wallet is on ("TESTNET" | "PUBLIC" | …). */
-  getNetwork(): Promise<string>;
-}
-
-declare global {
-  interface Window {
-    freighter?: FreighterApi;
-  }
-}
+import {
+  isConnected as freighterIsConnected,
+  requestAccess,
+  getAddress,
+  getNetwork,
+} from "@stellar/freighter-api";
 
 // ─── Horizon server ───────────────────────────────────────────────────────────
 
-// Use testnet by default; swap for PUBLIC_HORIZON_URL in production.
 const HORIZON_URL =
   process.env.NEXT_PUBLIC_HORIZON_URL ?? "https://horizon-testnet.stellar.org";
 
@@ -46,30 +29,13 @@ const horizon = new Horizon.Server(HORIZON_URL, { allowHttp: false });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Safely detect whether Freighter is installed in the current browser. */
-function isFreighterInstalled(): boolean {
-  return typeof window !== "undefined" && typeof window.freighter !== "undefined";
-}
-
-/**
- * Normalise isConnected() return value.
- *
- * Freighter's JS SDK ≥ 1.7 returns `{ isConnected: boolean }`.
- * Older versions return a plain boolean.  Handle both.
- */
-function parseIsConnected(result: boolean | { isConnected: boolean }): boolean {
-  if (typeof result === "boolean") return result;
-  return result.isConnected;
-}
-
-/** Format a raw XLM balance string to 7 decimal places maximum. */
+/** Format a raw XLM balance string to at most 4 decimal places. */
 function formatXlm(raw: string): string {
   const n = parseFloat(raw);
   if (isNaN(n)) return raw;
-  // Strip trailing zeros but keep at least 2 decimal places
   return n.toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 7,
+    maximumFractionDigits: 4,
   });
 }
 
@@ -102,7 +68,6 @@ export function useStellarWallet() {
         );
         setBalance(xlmBalance ? formatXlm(xlmBalance.balance) : "0.00");
       } catch {
-        // Non-fatal: wallet can be connected even if Horizon is unreachable
         setBalance("—");
       } finally {
         setLoadingBalance(false);
@@ -114,28 +79,57 @@ export function useStellarWallet() {
   // ── Connect ───────────────────────────────────────────────────────────────
 
   const connect = useCallback(async () => {
-    if (!isFreighterInstalled()) {
-      setError(
-        "Freighter wallet not found. Install it at freighter.app and reload."
-      );
-      setStatus("disconnected");
-      return;
-    }
-
     setStatus("checking");
     setError(null);
 
     try {
-      // requestAccess() shows the Freighter permission modal if needed and
-      // returns the public key on success.
-      const key = await window.freighter!.requestAccess();
-      if (!key) throw new Error("Access denied.");
+      // Check if Freighter is installed and accessible
+      const connectionResult = await freighterIsConnected();
+
+      // freighter-api v6 returns { isConnected: boolean } or throws if not installed
+      const installed =
+        typeof connectionResult === "boolean"
+          ? connectionResult
+          : connectionResult?.isConnected ?? false;
+
+      if (!installed) {
+        // Freighter is not installed
+        setError(
+          "Freighter wallet not found. Install it at freighter.app and reload."
+        );
+        setStatus("disconnected");
+        return;
+      }
+
+      // Request permission — shows Freighter modal if not yet granted
+      const accessResult = await requestAccess();
+
+      // v6 returns { address: string } or { error: string }
+      let key: string | null = null;
+      if (typeof accessResult === "string") {
+        key = accessResult;
+      } else if (accessResult && "address" in accessResult) {
+        key = (accessResult as { address: string }).address;
+      } else if (accessResult && "error" in accessResult) {
+        throw new Error((accessResult as { error: string }).error);
+      }
+
+      if (!key) throw new Error("No public key returned from Freighter.");
+
       setConnected(key);
       await fetchBalance(key);
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Failed to connect wallet.";
-      setError(msg);
+
+      // Translate common Freighter error messages into user-friendly ones
+      const friendlyMsg = msg.includes("not installed") || msg.includes("not found")
+        ? "Freighter wallet not found. Install it at freighter.app and reload."
+        : msg.includes("User declined") || msg.includes("rejected")
+        ? "Connection rejected. Click Connect Wallet to try again."
+        : msg;
+
+      setError(friendlyMsg);
       setStatus("disconnected");
     }
   }, [setConnected, setStatus, setError, fetchBalance]);
@@ -143,7 +137,6 @@ export function useStellarWallet() {
   // ── Disconnect ────────────────────────────────────────────────────────────
 
   const handleDisconnect = useCallback(() => {
-    // Freighter has no programmatic disconnect; we just clear local state.
     disconnect();
   }, [disconnect]);
 
@@ -154,33 +147,44 @@ export function useStellarWallet() {
   }, [publicKey, fetchBalance]);
 
   // ── Auto-reconnect on mount ───────────────────────────────────────────────
-  // If the user already granted access in a previous session, silently
-  // restore their public key without showing the Freighter modal again.
+  // Silently restore the connection if the user already granted access.
 
   useEffect(() => {
     if (status !== "idle") return;
-    if (!isFreighterInstalled()) {
-      setStatus("disconnected");
-      return;
-    }
 
     let cancelled = false;
 
     (async () => {
-      setStatus("checking");
       try {
-        const result = await window.freighter!.isConnected();
+        const connectionResult = await freighterIsConnected();
         if (cancelled) return;
 
-        if (parseIsConnected(result)) {
-          const key = await window.freighter!.getPublicKey();
-          if (cancelled) return;
-          if (key) {
-            setConnected(key);
-            await fetchBalance(key);
-          } else {
-            setStatus("disconnected");
-          }
+        const isConn =
+          typeof connectionResult === "boolean"
+            ? connectionResult
+            : connectionResult?.isConnected ?? false;
+
+        if (!isConn) {
+          setStatus("disconnected");
+          return;
+        }
+
+        setStatus("checking");
+
+        // getAddress() returns the key without showing a modal if already permitted
+        const addressResult = await getAddress();
+        if (cancelled) return;
+
+        let key: string | null = null;
+        if (typeof addressResult === "string") {
+          key = addressResult;
+        } else if (addressResult && "address" in addressResult) {
+          key = (addressResult as { address: string }).address;
+        }
+
+        if (key) {
+          setConnected(key);
+          await fetchBalance(key);
         } else {
           setStatus("disconnected");
         }
@@ -196,16 +200,28 @@ export function useStellarWallet() {
 
   // ── Derived helpers ───────────────────────────────────────────────────────
 
-  /** Truncated address for display: "GABCD…WXYZ" */
   const truncatedAddress = publicKey
     ? `${publicKey.slice(0, 4)}…${publicKey.slice(-4)}`
     : null;
 
   const isConnected = status === "connected";
   const isChecking = status === "checking";
+  // If we got the specific "not found" error, Freighter is not installed
+  const freighterInstalled = !error?.includes("not found") && !error?.includes("Install it");
+
+  // Expose getNetwork for components that need to verify testnet/mainnet
+  const getWalletNetwork = useCallback(async (): Promise<string | null> => {
+    try {
+      const result = await getNetwork();
+      if (typeof result === "string") return result;
+      if (result && "network" in result) return (result as { network: string }).network;
+      return null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   return {
-    // State
     publicKey,
     truncatedAddress,
     balance,
@@ -214,9 +230,10 @@ export function useStellarWallet() {
     isChecking,
     isLoadingBalance,
     error,
-    // Actions
+    freighterInstalled,
     connect,
     disconnect: handleDisconnect,
     refreshBalance,
+    getWalletNetwork,
   };
 }

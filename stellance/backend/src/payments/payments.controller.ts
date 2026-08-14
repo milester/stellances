@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -7,6 +16,7 @@ import {
 } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { PaymentsService } from './payments.service';
+import { WithdrawDto } from './dto/withdraw.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '../generated/prisma/client';
@@ -18,12 +28,14 @@ interface AuthRequest extends Request {
 /**
  * PaymentsController
  *
- * Exposes read-only endpoints over the Payment ledger. Writes happen via
- * ContractsService when milestones are approved on-chain.
+ * Exposes the full payments surface the frontend consumes:
  *
- * Endpoints in active development:
- *   GET /payments/earnings — freelancer aggregate earnings dashboard
- *   POST /payments/withdraw — trigger SEP-24 anchor off-ramp
+ *   GET  /payments/balances              — Horizon XLM + USDC balances
+ *   GET  /payments/transactions          — unified transaction history
+ *   GET  /payments/earnings              — freelancer earnings aggregate
+ *   POST /payments/withdraw              — XLM withdrawal via Stellar SDK
+ *   GET  /payments/contracts/:contractId — per-contract payment records
+ *   GET  /payments/tx/:txHash            — look up a payment by tx hash
  */
 @ApiTags('payments')
 @ApiBearerAuth()
@@ -33,6 +45,80 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly prisma: PrismaService,
   ) {}
+
+  /**
+   * GET /payments/balances
+   *
+   * Returns XLM and USDC balances for the authenticated user's Stellar account.
+   * Queries Horizon directly using the stellarPublicKey stored on the user.
+   *
+   * Returns zero balances (not an error) when the user hasn't linked a wallet.
+   */
+  @ApiOperation({
+    summary: 'Get wallet balances from Horizon (XLM + USDC)',
+  })
+  @Get('balances')
+  async getBalances(@Req() req: AuthRequest) {
+    return this.paymentsService.getBalances(req.user.id);
+  }
+
+  /**
+   * GET /payments/transactions
+   *
+   * Returns a unified transaction history derived from Payment records,
+   * enriched with job titles and counterparty addresses.
+   *
+   * The list is ordered newest-first and covers all contracts where the
+   * authenticated user is either the client or the freelancer.
+   */
+  @ApiOperation({
+    summary: 'Get full transaction history for the authenticated user',
+  })
+  @Get('transactions')
+  async getTransactions(@Req() req: AuthRequest) {
+    return this.paymentsService.getTransactions(req.user.id);
+  }
+
+  /**
+   * GET /payments/earnings
+   *
+   * Freelancer earnings aggregate: total earned, payment count, and a
+   * breakdown by contract.
+   *
+   * Admins see data for their own account. To view another user's earnings,
+   * use GET /users/:id/earnings (not yet implemented).
+   */
+  @ApiOperation({
+    summary: 'Freelancer earnings aggregate (total + per-contract breakdown)',
+  })
+  @Get('earnings')
+  async getEarnings(@Req() req: AuthRequest) {
+    return this.paymentsService.getEarnings(req.user.id);
+  }
+
+  /**
+   * POST /payments/withdraw
+   *
+   * Initiates a withdrawal from the platform admin account to the caller's
+   * specified destination Stellar address.
+   *
+   * Currently only XLM is supported. USDC support via SEP-24 anchor is
+   * tracked as issue #89.
+   */
+  @ApiOperation({
+    summary:
+      'Withdraw XLM to a Stellar address (admin-assisted; SEP-24 off-ramp pending)',
+  })
+  @Post('withdraw')
+  @HttpCode(HttpStatus.OK)
+  async withdraw(@Req() req: AuthRequest, @Body() dto: WithdrawDto) {
+    return this.paymentsService.withdraw({
+      userId: req.user.id,
+      asset: dto.asset,
+      amount: dto.amount,
+      destinationAddress: dto.destinationAddress,
+    });
+  }
 
   /**
    * GET /payments/contracts/:contractId

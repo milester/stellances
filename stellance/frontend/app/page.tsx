@@ -79,7 +79,7 @@ export default function Home() {
             <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
             <a href="#features" className="hover:text-white transition-colors hidden md:inline">Features</a>
             <a
-              href="https://github.com/alone-in/stellances"
+              href="https://github.com/stallance/stellances"
               target="_blank"
               rel="noreferrer"
               className="hover:text-white transition-colors hidden md:inline"
@@ -183,7 +183,7 @@ export default function Home() {
                 Get started free →
               </Link>
               <a
-                href="https://github.com/alone-in/stellances"
+                href="https://github.com/stallance/stellances"
                 target="_blank" rel="noreferrer"
                 style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
@@ -456,10 +456,10 @@ export default function Home() {
               <a href="#features" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Features</a>
               <Link href="/login" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Sign in</Link>
               <Link href="/register" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Sign up</Link>
-              <a href="https://github.com/alone-in/stellances" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>GitHub ↗</a>
-              <a href="https://github.com/alone-in/stellances/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Contributing</a>
-              <a href="https://github.com/alone-in/stellances/blob/main/docs/architecture.md" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Docs</a>
-              <a href="https://github.com/alone-in/stellances/blob/main/LICENSE" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>License</a>
+              <a href="https://github.com/stallance/stellances" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>GitHub ↗</a>
+              <a href="https://github.com/stallance/stellances/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Contributing</a>
+              <a href="https://github.com/stallance/stellances/blob/main/docs/architecture.md" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>Docs</a>
+              <a href="https://github.com/stallance/stellances/blob/main/LICENSE" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: "#64748b" }}>License</a>
             </nav>
           </div>
           {/* Bottom row */}

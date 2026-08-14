@@ -402,7 +402,7 @@ export interface WalletConnectProps {
 }
 
 export function WalletConnect({ variant = "full" }: WalletConnectProps) {
-  const { publicKey, truncatedAddress, isConnected, isChecking, error, connect, disconnect, refreshBalance } =
+  const { publicKey, truncatedAddress, isConnected, isChecking, error, freighterInstalled, connect, disconnect, refreshBalance } =
     useStellarWallet();
 
   // Avoid SSR mismatch: render nothing until client-side mount.
@@ -451,6 +451,70 @@ export function WalletConnect({ variant = "full" }: WalletConnectProps) {
   }
 
   // ── Disconnected / idle state ──────────────────────────────────────────────
+
+  // Freighter not installed → show "Install Freighter" button that opens freighter.app
+  if (!freighterInstalled && error) {
+    return (
+      <a
+        href="https://freighter.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Install Freighter wallet"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "0.4rem",
+          padding: variant === "compact" ? "0.375rem 0.625rem" : "0.5rem 0.875rem",
+          borderRadius: "9999px",
+          background: "transparent",
+          border: "1px solid rgba(61,169,252,0.4)",
+          color: "#3DA9FC",
+          fontSize: "0.75rem",
+          fontWeight: 700,
+          fontFamily: "var(--font-space-grotesk)",
+          cursor: "pointer",
+          textDecoration: "none",
+          transition: "background 150ms, border-color 150ms",
+          letterSpacing: "0.01em",
+          whiteSpace: "nowrap",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.background =
+            "rgba(61,169,252,0.08)";
+          (e.currentTarget as HTMLAnchorElement).style.borderColor =
+            "rgba(61,169,252,0.7)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+          (e.currentTarget as HTMLAnchorElement).style.borderColor =
+            "rgba(61,169,252,0.4)";
+        }}
+      >
+        <WalletIcon size={14} />
+        {variant === "compact" ? "Install" : "Install Freighter"}
+        {/* External link icon */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={10}
+          height={10}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          <polyline points="15 3 21 3 21 9" />
+          <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
+      </a>
+    );
+  }
+
+  // Freighter installed (or not yet checked) → show Connect Wallet button
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
       <button
@@ -488,8 +552,8 @@ export function WalletConnect({ variant = "full" }: WalletConnectProps) {
         {variant === "compact" ? "Connect" : "Connect Wallet"}
       </button>
 
-      {/* Inline error message */}
-      {error && (
+      {/* Show non-install errors inline (e.g. user rejected) */}
+      {error && freighterInstalled && (
         <p
           role="alert"
           style={{

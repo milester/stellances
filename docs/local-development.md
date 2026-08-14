@@ -22,7 +22,7 @@ rustup target add wasm32-unknown-unknown
 ## 1. Clone the repo
 
 ```bash
-git clone https://github.com/alone-in/stellances.git
+git clone https://github.com/stallance/stellances.git
 cd stellances
 ```
 

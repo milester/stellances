@@ -123,19 +123,40 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// ─── Paginated response wrapper (matches JobsService.findAll) ────────────────
+
+export interface PaginatedJobs {
+  data: Job[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // ─── Jobs API ─────────────────────────────────────────────────────────────────
 
 /**
- * Fetch all jobs from GET /jobs.
- * Passes optional status and mine filters as query params.
+ * Fetch jobs from GET /jobs.
+ * The backend returns a paginated envelope { data, total, page, limit, totalPages }.
+ * This function unwraps it and returns just the Job array for backwards compat,
+ * since the jobs page does its own client-side pagination on the full result set.
  */
 export async function fetchJobs(params?: JobsQueryParams): Promise<Job[]> {
   const qs = new URLSearchParams();
   if (params?.status) qs.set("status", params.status);
   if (params?.mine) qs.set("mine", "true");
+  // Request a large page so we get all jobs in one shot for client-side filtering
+  qs.set("limit", "100");
 
   const query = qs.toString() ? `?${qs.toString()}` : "";
-  return apiFetch<Job[]>(`/jobs${query}`);
+  const res = await apiFetch<PaginatedJobs | Job[]>(`/jobs${query}`);
+
+  // Unwrap paginated envelope if present
+  if (res && typeof res === "object" && "data" in res && Array.isArray((res as PaginatedJobs).data)) {
+    return (res as PaginatedJobs).data;
+  }
+  // Fallback: already a plain array
+  return res as Job[];
 }
 
 /**

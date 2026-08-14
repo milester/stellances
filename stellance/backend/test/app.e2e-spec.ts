@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as http from 'http';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
@@ -38,18 +39,18 @@ const SKIP_E2E =
   });
 
   it('GET /api returns 200', () => {
-    return request(app.getHttpServer()).get('/api').expect(200);
+    return request(app.getHttpServer() as http.Server).get('/api').expect(200);
   });
 
   it('POST /api/auth/register with invalid body returns 400', () => {
-    return request(app.getHttpServer())
+    return request(app.getHttpServer() as http.Server)
       .post('/api/auth/register')
       .send({ email: 'not-an-email' })
       .expect(400);
   });
 
   it('POST /api/auth/login with wrong credentials returns 401', () => {
-    return request(app.getHttpServer())
+    return request(app.getHttpServer() as http.Server)
       .post('/api/auth/login')
       .send({ email: 'nobody@example.com', password: 'wrong' })
       .expect(401);

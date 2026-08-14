@@ -13,7 +13,7 @@ Stellance is under active development. Security fixes are applied to the latest 
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-To report a vulnerability, email the maintainers directly or open a [GitHub Security Advisory](https://github.com/alone-in/stellances/security/advisories/new) (private disclosure).
+To report a vulnerability, email the maintainers directly or open a [GitHub Security Advisory](https://github.com/stallance/stellances/security/advisories/new) (private disclosure).
 
 Include:
 

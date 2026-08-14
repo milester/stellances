@@ -428,7 +428,7 @@ async fundEscrow(contractId: string, amount: number) {
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/alone-in/stellances.git
+git clone https://github.com/stallance/stellances.git
 cd stellances
 
 # 2. Start PostgreSQL (requires Docker)

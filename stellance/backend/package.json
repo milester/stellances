@@ -81,7 +81,8 @@
     "find-my-way": "9.7.0",
     "minimatch": "^10.2.6",
     "brace-expansion": "^5.0.9",
-    "test-exclude": "^8.0.0"
+    "test-exclude": "^8.0.0",
+    "deepmerge-ts": ">=8.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -95,7 +96,12 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.jest.json" }]
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.jest.json"
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

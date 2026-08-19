@@ -8,10 +8,11 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/User.js'
-export type * from './models/RefreshToken.js'
-export type * from './models/Job.js'
-export type * from './models/Contract.js'
-export type * from './models/Milestone.js'
-export type * from './models/Payment.js'
-export type * from './commonInputTypes.js'
+export type * from './models/User'
+export type * from './models/RefreshToken'
+export type * from './models/Job'
+export type * from './models/Contract'
+export type * from './models/Milestone'
+export type * from './models/Payment'
+export type * from './models/Notification'
+export type * from './commonInputTypes'

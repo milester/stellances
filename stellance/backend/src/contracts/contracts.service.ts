@@ -8,10 +8,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { EscrowService } from '../escrow/escrow.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   ContractStatus,
   JobStatus,
   MilestoneStatus,
+  NotificationType,
   UserRole,
 } from '../generated/prisma/client';
 import { CreateContractDto } from './dto/create-contract.dto';
@@ -23,6 +25,7 @@ export class ContractsService {
     private readonly prisma: PrismaService,
     private readonly escrow: EscrowService,
     private readonly config: ConfigService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /**
@@ -84,6 +87,15 @@ export class ContractsService {
       return c;
     });
 
+    // Notify the freelancer that a contract has been created with them
+    await this.notifications.create({
+      userId: dto.freelancerId,
+      type: NotificationType.CONTRACT_CREATED,
+      title: 'New contract offer',
+      body: `A contract has been created for "${job.title}". Waiting for escrow funding.`,
+      contractId: contract.id,
+    });
+
     // Build unsigned XDR for Freighter signing (best-effort)
     let fundXdr: string | null = null;
     if (client.stellarPublicKey && freelancer.stellarPublicKey) {
@@ -137,7 +149,7 @@ export class ContractsService {
 
     await this.escrow.verifyTransaction(txHash);
 
-    return this.prisma.contract.update({
+    const updated = await this.prisma.contract.update({
       where: { id },
       data: {
         escrowTxHash: txHash,
@@ -146,6 +158,28 @@ export class ContractsService {
       },
       include: { milestones: true },
     });
+
+    const jobTitle = contract.job.title;
+
+    // Notify both parties that escrow is funded and work can begin
+    await Promise.all([
+      this.notifications.create({
+        userId: contract.freelancerId,
+        type: NotificationType.CONTRACT_FUNDED,
+        title: 'Escrow funded — work can begin',
+        body: `The client has funded the escrow for "${jobTitle}". You can now start work.`,
+        contractId: id,
+      }),
+      this.notifications.create({
+        userId: contract.clientId,
+        type: NotificationType.CONTRACT_FUNDED,
+        title: 'Escrow confirmed',
+        body: `Your escrow for "${jobTitle}" is confirmed on Stellar (tx: ${txHash.slice(0, 10)}…).`,
+        contractId: id,
+      }),
+    ]);
+
+    return updated;
   }
 
   async findAll(
@@ -200,10 +234,22 @@ export class ContractsService {
     if (milestone.status !== MilestoneStatus.PENDING)
       throw new BadRequestException('Milestone must be PENDING to submit');
 
-    return this.prisma.milestone.update({
+    const updated = await this.prisma.milestone.update({
       where: { id: milestoneId },
       data: { status: MilestoneStatus.IN_REVIEW },
     });
+
+    // Notify the client that the freelancer has submitted a milestone for review
+    await this.notifications.create({
+      userId: contract.clientId,
+      type: NotificationType.MILESTONE_SUBMITTED,
+      title: 'Milestone ready for review',
+      body: `"${milestone.title}" has been submitted for your review on contract "${contract.job.title}".`,
+      contractId,
+      milestoneId,
+    });
+
+    return updated;
   }
 
   /**
@@ -243,17 +289,11 @@ export class ContractsService {
     });
 
     // On-chain success — commit all state changes atomically.
-    // The milestone moves APPROVED → PAID in the same DB transaction so the
-    // APPROVED state is briefly recorded even though both steps happen
-    // atomically. This preserves the full state-machine history for auditing.
     await this.prisma.$transaction(async (tx) => {
-      // Step 1: mark APPROVED (intermediate — payment was approved but DB not yet
-      // reflecting the on-chain settlement)
       await tx.milestone.update({
         where: { id: milestoneId },
         data: { status: MilestoneStatus.APPROVED },
       });
-      // Step 2: advance to PAID and record the Stellar payment atomically
       await tx.milestone.update({
         where: { id: milestoneId },
         data: { status: MilestoneStatus.PAID },
@@ -270,6 +310,27 @@ export class ContractsService {
 
     await this._maybeCompleteContract(contractId);
 
+    // Notify the freelancer their milestone was approved and payment released
+    const amountXlm = parseFloat(milestone.amount.toString()).toFixed(2);
+    await this.notifications.create({
+      userId: contract.freelancerId,
+      type: NotificationType.MILESTONE_PAID,
+      title: 'Payment released 🎉',
+      body: `"${milestone.title}" approved — ${amountXlm} XLM has been released to your wallet (tx: ${txHash.slice(0, 10)}…).`,
+      contractId,
+      milestoneId,
+    });
+
+    // Also notify the client for their own records
+    await this.notifications.create({
+      userId: contract.clientId,
+      type: NotificationType.MILESTONE_APPROVED,
+      title: 'Milestone approved',
+      body: `You approved "${milestone.title}" on contract "${contract.job.title}". Payment sent on Stellar.`,
+      contractId,
+      milestoneId,
+    });
+
     return this.prisma.milestone.findUnique({
       where: { id: milestoneId },
       include: { payment: true },
@@ -280,18 +341,8 @@ export class ContractsService {
    * POST /contracts/:id/dispute
    *
    * 1. Validate the caller is a party to the contract and it is ACTIVE.
-   * 2. Submit dispute() on-chain — this freezes the escrow so neither
-   *    release nor refund can be called until an admin resolves it.
+   * 2. Submit dispute() on-chain — this freezes the escrow.
    * 3. Only after the on-chain call succeeds, update the DB status to DISPUTED.
-   *
-   * If the contract has not yet been funded (no escrowTxHash), the on-chain
-   * call is skipped — the escrow entry doesn't exist yet and there's nothing
-   * to freeze.
-   *
-   * Note: submitDispute() currently uses the admin key as the on-chain caller
-   * because the backend submits the tx server-side. The correct long-term
-   * approach is to return unsigned XDR for the party to sign via Freighter
-   * (matching buildFundXdr). This is tracked as a follow-up.
    */
   async dispute(contractId: string, callerId: string, reason: string) {
     void reason; // stored off-chain in a future disputes table
@@ -301,17 +352,40 @@ export class ContractsService {
     if (contract.status !== ContractStatus.ACTIVE)
       throw new BadRequestException('Contract must be ACTIVE to dispute');
 
-    // Freeze the on-chain escrow BEFORE committing the DB state change.
-    // If the Soroban call fails, the DB stays ACTIVE and the caller can retry.
-    // Skip if the escrow hasn't been funded yet — no on-chain entry exists.
     if (contract.escrowTxHash) {
       await this.escrow.submitDispute(contractId);
     }
 
-    return this.prisma.contract.update({
+    const updated = await this.prisma.contract.update({
       where: { id: contractId },
       data: { status: ContractStatus.DISPUTED },
     });
+
+    // Determine the other party
+    const otherPartyId =
+      callerId === contract.clientId
+        ? contract.freelancerId
+        : contract.clientId;
+
+    // Notify both parties
+    await Promise.all([
+      this.notifications.create({
+        userId: otherPartyId,
+        type: NotificationType.DISPUTE_RAISED,
+        title: 'Dispute raised on your contract',
+        body: `A dispute has been raised on contract "${contract.job.title}". Escrow is frozen pending admin review.`,
+        contractId,
+      }),
+      this.notifications.create({
+        userId: callerId,
+        type: NotificationType.DISPUTE_RAISED,
+        title: 'Dispute submitted',
+        body: `Your dispute on "${contract.job.title}" has been submitted. An admin will review it shortly.`,
+        contractId,
+      }),
+    ]);
+
+    return updated;
   }
 
   async resolveDispute(
@@ -358,6 +432,31 @@ export class ContractsService {
       });
     });
 
+    // Notify both parties about the resolution
+    const outcomeText =
+      dto.decision === 'release'
+        ? 'Funds released to freelancer'
+        : dto.decision === 'refund'
+          ? 'Funds refunded to client'
+          : `Funds split (${dto.freelancerBps ?? 0} bps to freelancer)`;
+
+    await Promise.all([
+      this.notifications.create({
+        userId: contract.clientId,
+        type: NotificationType.DISPUTE_RESOLVED,
+        title: 'Dispute resolved',
+        body: `The dispute on "${contract.job.title}" has been resolved. ${outcomeText}.`,
+        contractId,
+      }),
+      this.notifications.create({
+        userId: contract.freelancerId,
+        type: NotificationType.DISPUTE_RESOLVED,
+        title: 'Dispute resolved',
+        body: `The dispute on "${contract.job.title}" has been resolved. ${outcomeText}.`,
+        contractId,
+      }),
+    ]);
+
     return { resolved: true, txHash, status: finalStatus };
   }
 
@@ -371,8 +470,6 @@ export class ContractsService {
     ) {
       throw new BadRequestException(`Contract is already ${contract.status}`);
     }
-    // A PENDING (unfunded) contract can always be cancelled by the client — no
-    // escrow exists yet so no on-chain refund is needed.
     if (
       contract.escrowTxHash &&
       contract.status !== ContractStatus.PENDING &&
@@ -405,6 +502,24 @@ export class ContractsService {
       });
     });
 
+    // Notify both parties about cancellation
+    await Promise.all([
+      this.notifications.create({
+        userId: contract.freelancerId,
+        type: NotificationType.CONTRACT_CANCELLED,
+        title: 'Contract cancelled',
+        body: `The contract for "${contract.job.title}" has been cancelled.${txHash ? ' Any escrowed funds have been refunded.' : ''}`,
+        contractId,
+      }),
+      this.notifications.create({
+        userId: contract.clientId,
+        type: NotificationType.CONTRACT_CANCELLED,
+        title: 'Contract cancelled',
+        body: `Your contract for "${contract.job.title}" has been cancelled.${txHash ? ' Escrowed funds refunded on Stellar.' : ''}`,
+        contractId,
+      }),
+    ]);
+
     return { cancelled: true, txHash };
   }
 
@@ -426,15 +541,31 @@ export class ContractsService {
   }
 
   private async _maybeCompleteContract(contractId: string) {
-    const milestones = await this.prisma.milestone.findMany({
-      where: { contractId },
-      select: { status: true },
-    });
+    const contract = await this._getContractOrThrow(contractId);
+    const milestones = contract.milestones;
     if (milestones.every((m) => m.status === MilestoneStatus.PAID)) {
       await this.prisma.contract.update({
         where: { id: contractId },
         data: { status: ContractStatus.COMPLETED },
       });
+
+      // Notify both parties that all milestones are paid and contract is complete
+      await Promise.all([
+        this.notifications.create({
+          userId: contract.freelancerId,
+          type: NotificationType.CONTRACT_COMPLETED,
+          title: 'Contract completed 🎉',
+          body: `All milestones on "${contract.job.title}" have been paid. Contract is now complete.`,
+          contractId,
+        }),
+        this.notifications.create({
+          userId: contract.clientId,
+          type: NotificationType.CONTRACT_COMPLETED,
+          title: 'Contract completed',
+          body: `All milestones on "${contract.job.title}" have been paid. Contract is now complete.`,
+          contractId,
+        }),
+      ]);
     }
   }
 
@@ -449,16 +580,8 @@ export class ContractsService {
         select: { amount: true },
       }),
     ]);
-    // Use string-based arithmetic to avoid floating-point precision loss on
-    // Prisma Decimal(18,7) values. Multiply to integers, subtract, divide back.
-    // IMPORTANT: call .toString() on the Decimal and parse with parseInt at the
-    // scaled level — never pass a Decimal directly to Number() which can round
-    // values beyond 15 significant digits.
-    const SCALE = 10_000_000; // 7 decimal places — matches Decimal(18,7)
+    const SCALE = 10_000_000;
     const totalCents = milestones.reduce((s, m) => {
-      // m.amount is a Prisma Decimal object; .toString() gives the exact string
-      // representation (e.g. "1234.5670000"). Math.round handles any trailing
-      // float noise after the string→float conversion within 7 dp.
       return s + Math.round(parseFloat(m.amount.toString()) * SCALE);
     }, 0);
     const paidCents = payments.reduce((s, p) => {

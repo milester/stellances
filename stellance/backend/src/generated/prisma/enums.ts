@@ -47,3 +47,18 @@ export const MilestoneStatus = {
 } as const
 
 export type MilestoneStatus = (typeof MilestoneStatus)[keyof typeof MilestoneStatus]
+
+
+export const NotificationType = {
+  CONTRACT_CREATED: 'CONTRACT_CREATED',
+  CONTRACT_FUNDED: 'CONTRACT_FUNDED',
+  CONTRACT_COMPLETED: 'CONTRACT_COMPLETED',
+  CONTRACT_CANCELLED: 'CONTRACT_CANCELLED',
+  MILESTONE_SUBMITTED: 'MILESTONE_SUBMITTED',
+  MILESTONE_APPROVED: 'MILESTONE_APPROVED',
+  MILESTONE_PAID: 'MILESTONE_PAID',
+  DISPUTE_RAISED: 'DISPUTE_RAISED',
+  DISPUTE_RESOLVED: 'DISPUTE_RESOLVED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

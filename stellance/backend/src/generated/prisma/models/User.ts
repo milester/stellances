@@ -9,8 +9,8 @@
  * 🟢 You can import this file directly.
  */
 import type * as runtime from "@prisma/client/runtime/client"
-import type * as $Enums from "../enums.js"
-import type * as Prisma from "../internal/prismaNamespace.js"
+import type * as $Enums from "../enums"
+import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model User
@@ -252,6 +252,7 @@ export type UserWhereInput = {
   contractsAsClient?: Prisma.ContractListRelationFilter
   contractsAsFreelancer?: Prisma.ContractListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -268,6 +269,7 @@ export type UserOrderByWithRelationInput = {
   contractsAsClient?: Prisma.ContractOrderByRelationAggregateInput
   contractsAsFreelancer?: Prisma.ContractOrderByRelationAggregateInput
   refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -287,6 +289,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   contractsAsClient?: Prisma.ContractListRelationFilter
   contractsAsFreelancer?: Prisma.ContractListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }, "id" | "email" | "stellarPublicKey">
 
 export type UserOrderByWithAggregationInput = {
@@ -335,6 +338,7 @@ export type UserCreateInput = {
   contractsAsClient?: Prisma.ContractCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractCreateNestedManyWithoutFreelancerInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -351,6 +355,7 @@ export type UserUncheckedCreateInput = {
   contractsAsClient?: Prisma.ContractUncheckedCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractUncheckedCreateNestedManyWithoutFreelancerInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -367,6 +372,7 @@ export type UserUpdateInput = {
   contractsAsClient?: Prisma.ContractUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUpdateManyWithoutFreelancerNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -383,6 +389,7 @@ export type UserUncheckedUpdateInput = {
   contractsAsClient?: Prisma.ContractUncheckedUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUncheckedUpdateManyWithoutFreelancerNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -550,6 +557,20 @@ export type UserUpdateOneRequiredWithoutContractsAsClientNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutContractsAsClientInput, Prisma.UserUpdateWithoutContractsAsClientInput>, Prisma.UserUncheckedUpdateWithoutContractsAsClientInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type UserCreateWithoutRefreshTokensInput = {
   id?: string
   email: string
@@ -563,6 +584,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   jobs?: Prisma.JobCreateNestedManyWithoutClientInput
   contractsAsClient?: Prisma.ContractCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractCreateNestedManyWithoutFreelancerInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -578,6 +600,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutClientInput
   contractsAsClient?: Prisma.ContractUncheckedCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractUncheckedCreateNestedManyWithoutFreelancerInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -609,6 +632,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   jobs?: Prisma.JobUpdateManyWithoutClientNestedInput
   contractsAsClient?: Prisma.ContractUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUpdateManyWithoutFreelancerNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -624,6 +648,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   jobs?: Prisma.JobUncheckedUpdateManyWithoutClientNestedInput
   contractsAsClient?: Prisma.ContractUncheckedUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUncheckedUpdateManyWithoutFreelancerNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutJobsInput = {
@@ -639,6 +664,7 @@ export type UserCreateWithoutJobsInput = {
   contractsAsClient?: Prisma.ContractCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractCreateNestedManyWithoutFreelancerInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutJobsInput = {
@@ -654,6 +680,7 @@ export type UserUncheckedCreateWithoutJobsInput = {
   contractsAsClient?: Prisma.ContractUncheckedCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractUncheckedCreateNestedManyWithoutFreelancerInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutJobsInput = {
@@ -685,6 +712,7 @@ export type UserUpdateWithoutJobsInput = {
   contractsAsClient?: Prisma.ContractUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUpdateManyWithoutFreelancerNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutJobsInput = {
@@ -700,6 +728,7 @@ export type UserUncheckedUpdateWithoutJobsInput = {
   contractsAsClient?: Prisma.ContractUncheckedUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUncheckedUpdateManyWithoutFreelancerNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContractsAsFreelancerInput = {
@@ -715,6 +744,7 @@ export type UserCreateWithoutContractsAsFreelancerInput = {
   jobs?: Prisma.JobCreateNestedManyWithoutClientInput
   contractsAsClient?: Prisma.ContractCreateNestedManyWithoutClientInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContractsAsFreelancerInput = {
@@ -730,6 +760,7 @@ export type UserUncheckedCreateWithoutContractsAsFreelancerInput = {
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutClientInput
   contractsAsClient?: Prisma.ContractUncheckedCreateNestedManyWithoutClientInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContractsAsFreelancerInput = {
@@ -750,6 +781,7 @@ export type UserCreateWithoutContractsAsClientInput = {
   jobs?: Prisma.JobCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractCreateNestedManyWithoutFreelancerInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContractsAsClientInput = {
@@ -765,6 +797,7 @@ export type UserUncheckedCreateWithoutContractsAsClientInput = {
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutClientInput
   contractsAsFreelancer?: Prisma.ContractUncheckedCreateNestedManyWithoutFreelancerInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContractsAsClientInput = {
@@ -796,6 +829,7 @@ export type UserUpdateWithoutContractsAsFreelancerInput = {
   jobs?: Prisma.JobUpdateManyWithoutClientNestedInput
   contractsAsClient?: Prisma.ContractUpdateManyWithoutClientNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContractsAsFreelancerInput = {
@@ -811,6 +845,7 @@ export type UserUncheckedUpdateWithoutContractsAsFreelancerInput = {
   jobs?: Prisma.JobUncheckedUpdateManyWithoutClientNestedInput
   contractsAsClient?: Prisma.ContractUncheckedUpdateManyWithoutClientNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutContractsAsClientInput = {
@@ -837,6 +872,7 @@ export type UserUpdateWithoutContractsAsClientInput = {
   jobs?: Prisma.JobUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUpdateManyWithoutFreelancerNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContractsAsClientInput = {
@@ -852,6 +888,87 @@ export type UserUncheckedUpdateWithoutContractsAsClientInput = {
   jobs?: Prisma.JobUncheckedUpdateManyWithoutClientNestedInput
   contractsAsFreelancer?: Prisma.ContractUncheckedUpdateManyWithoutFreelancerNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  password: string
+  stellarPublicKey?: string | null
+  tokenVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  jobs?: Prisma.JobCreateNestedManyWithoutClientInput
+  contractsAsClient?: Prisma.ContractCreateNestedManyWithoutClientInput
+  contractsAsFreelancer?: Prisma.ContractCreateNestedManyWithoutFreelancerInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  password: string
+  stellarPublicKey?: string | null
+  tokenVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  jobs?: Prisma.JobUncheckedCreateNestedManyWithoutClientInput
+  contractsAsClient?: Prisma.ContractUncheckedCreateNestedManyWithoutClientInput
+  contractsAsFreelancer?: Prisma.ContractUncheckedCreateNestedManyWithoutFreelancerInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  stellarPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobs?: Prisma.JobUpdateManyWithoutClientNestedInput
+  contractsAsClient?: Prisma.ContractUpdateManyWithoutClientNestedInput
+  contractsAsFreelancer?: Prisma.ContractUpdateManyWithoutFreelancerNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  stellarPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  jobs?: Prisma.JobUncheckedUpdateManyWithoutClientNestedInput
+  contractsAsClient?: Prisma.ContractUncheckedUpdateManyWithoutClientNestedInput
+  contractsAsFreelancer?: Prisma.ContractUncheckedUpdateManyWithoutFreelancerNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -864,6 +981,7 @@ export type UserCountOutputType = {
   contractsAsClient: number
   contractsAsFreelancer: number
   refreshTokens: number
+  notifications: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -871,6 +989,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   contractsAsClient?: boolean | UserCountOutputTypeCountContractsAsClientArgs
   contractsAsFreelancer?: boolean | UserCountOutputTypeCountContractsAsFreelancerArgs
   refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
 }
 
 /**
@@ -911,6 +1030,13 @@ export type UserCountOutputTypeCountRefreshTokensArgs<ExtArgs extends runtime.Ty
   where?: Prisma.RefreshTokenWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -926,6 +1052,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   contractsAsClient?: boolean | Prisma.User$contractsAsClientArgs<ExtArgs>
   contractsAsFreelancer?: boolean | Prisma.User$contractsAsFreelancerArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -971,6 +1098,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   contractsAsClient?: boolean | Prisma.User$contractsAsClientArgs<ExtArgs>
   contractsAsFreelancer?: boolean | Prisma.User$contractsAsFreelancerArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -983,6 +1111,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     contractsAsClient: Prisma.$ContractPayload<ExtArgs>[]
     contractsAsFreelancer: Prisma.$ContractPayload<ExtArgs>[]
     refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1392,6 +1521,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   contractsAsClient<T extends Prisma.User$contractsAsClientArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contractsAsClientArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contractsAsFreelancer<T extends Prisma.User$contractsAsFreelancerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contractsAsFreelancerArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   refreshTokens<T extends Prisma.User$refreshTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1916,6 +2046,30 @@ export type User$refreshTokensArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.RefreshTokenScalarFieldEnum | Prisma.RefreshTokenScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**

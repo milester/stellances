@@ -120,9 +120,17 @@ function makeEscrowMock() {
   };
 }
 
+/** Stub out NotificationsService — contracts tests don't assert on notifications. */
+function makeNotificationsMock() {
+  return {
+    create: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
 function setup() {
   const prisma = makePrismaMock();
   const escrow = makeEscrowMock();
+  const notifications = makeNotificationsMock();
   // ConfigService mock — returns undefined for any key so the service uses
   // its built-in fallback values (testnet defaults).
   const config = { get: jest.fn().mockReturnValue(undefined) };
@@ -130,8 +138,9 @@ function setup() {
     prisma as unknown as PrismaService,
     escrow as unknown as EscrowService,
     config as unknown as import('@nestjs/config').ConfigService,
+    notifications as unknown as import('../notifications/notifications.service').NotificationsService,
   );
-  return { prisma, escrow, service };
+  return { prisma, escrow, notifications, service };
 }
 
 // ---------------------------------------------------------------------------

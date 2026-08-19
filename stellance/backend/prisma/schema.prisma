@@ -52,10 +52,11 @@ model User {
   createdAt             DateTime   @default(now())
   updatedAt             DateTime   @updatedAt
 
-  jobs                  Job[]      @relation("JobClient")
-  contractsAsClient     Contract[] @relation("ContractClient")
-  contractsAsFreelancer Contract[] @relation("ContractFreelancer")
+  jobs                  Job[]          @relation("JobClient")
+  contractsAsClient     Contract[]     @relation("ContractClient")
+  contractsAsFreelancer Contract[]     @relation("ContractFreelancer")
   refreshTokens         RefreshToken[]
+  notifications         Notification[]
 
   @@index([email])
   @@index([stellarPublicKey])
@@ -153,4 +154,34 @@ model Payment {
 
   @@index([contractId])
   @@index([stellarTxHash])
+}
+
+enum NotificationType {
+  CONTRACT_CREATED
+  CONTRACT_FUNDED
+  CONTRACT_COMPLETED
+  CONTRACT_CANCELLED
+  MILESTONE_SUBMITTED
+  MILESTONE_APPROVED
+  MILESTONE_PAID
+  DISPUTE_RAISED
+  DISPUTE_RESOLVED
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  type        NotificationType
+  title       String
+  body        String
+  read        Boolean          @default(false)
+  contractId  String?
+  milestoneId String?
+  createdAt   DateTime         @default(now())
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([createdAt])
 }
